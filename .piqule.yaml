@@ -1,0 +1,3 @@
+# Piqule configuration. All available keys and their defaults are in .piqule/config.yaml.
+override:
+    phpunit.testsuites.integration: []
