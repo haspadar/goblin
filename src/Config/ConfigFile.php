@@ -24,7 +24,7 @@ final readonly class ConfigFile
      */
     public function data(): array
     {
-        if (!file_exists($this->path)) {
+        if (!is_file($this->path) || !is_readable($this->path)) {
             throw new GoblinException("Config file not found: {$this->path}");
         }
 

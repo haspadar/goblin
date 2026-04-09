@@ -12,21 +12,27 @@ use PHPUnit\Framework\TestCase;
 final class ConfigFileTest extends TestCase
 {
     #[Test]
-    public function returnsArrayFromValidFile(): void
+    public function returnsFullArrayFromValidFile(): void
     {
         $file = new ConfigFile(__DIR__ . '/fixtures/valid.php');
 
         self::assertSame(
-            'https://acme.atlassian.net',
-            $file->data()['jira-url'],
-            'valid config file must return parsed array',
+            [
+                'jira-url' => 'https://acme.atlassian.net',
+                'jira-user' => 'tester@example.com',
+                'jira-token' => 'test-token-abc',
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'protected-branches' => ['dev', 'stage', 'master'],
+            ],
+            $file->data(),
+            'valid config file must return exact parsed array',
         );
     }
 
     #[Test]
     public function throwsWhenFileNotFound(): void
     {
-        $file = new ConfigFile('/tmp/goblin-no-such-config.php');
+        $file = new ConfigFile(sys_get_temp_dir() . '/goblin-no-such-config.php');
 
         $this->expectException(GoblinException::class);
         $file->data();

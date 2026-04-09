@@ -5,7 +5,7 @@ return [
     'jira-user' => 'user@example.com',
     'jira-token' => '...',
     'project-regex' => '/^([A-Z]+)-\d+/',
-    'protected-branches' => ['dev', 'stage', 'beta', 'master'],
+    'protected-branches' => ['main', 'dev', 'stage', 'beta', 'master'],
     'gitlab-url' => 'https://gitlab.example.com',
     'gitlab-token' => '...',
 ];
