@@ -1,0 +1,6 @@
+/vendor/
+/.idea/
+*.log
+.goblin.php
+CLAUDE.md
+docs/
