@@ -46,4 +46,13 @@ final class ConfigFileTest extends TestCase
         $this->expectException(GoblinException::class);
         $file->data();
     }
+
+    #[Test]
+    public function throwsWhenPathIsDirectory(): void
+    {
+        $file = new ConfigFile(__DIR__ . '/fixtures');
+
+        $this->expectException(GoblinException::class);
+        $file->data();
+    }
 }
