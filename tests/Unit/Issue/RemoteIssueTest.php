@@ -80,28 +80,28 @@ final class RemoteIssueTest extends TestCase
     public function returnsCommentBodyAsPlainText(): void
     {
         $http = new FakeHttp([
-            'GET /rest/api/3/issue/PROJ-42' => [
-                'key' => 'PROJ-42',
+            'GET /rest/api/3/issue/BUG-99' => [
+                'key' => 'BUG-99',
                 'fields' => [
-                    'summary' => 'Fix broken pipeline',
+                    'summary' => 'Login timeout on mobile',
                     'description' => [],
                     'comment' => ['comments' => []],
                 ],
             ],
-            'GET /rest/api/3/issue/PROJ-42/comment?startAt=0&maxResults=100' => [
+            'GET /rest/api/3/issue/BUG-99/comment?startAt=0&maxResults=100' => [
                 'comments' => [
                     [
-                        'id' => '30001',
-                        'author' => ['displayName' => 'Igor Volkov'],
-                        'created' => '2026-03-10T09:00:00.000+0000',
-                        'updated' => '2026-03-10T09:00:00.000+0000',
+                        'id' => '50077',
+                        'author' => ['displayName' => 'Anna Petrova'],
+                        'created' => '2026-04-01T14:30:00.000+0000',
+                        'updated' => '2026-04-01T15:00:00.000+0000',
                         'body' => [
                             'type' => 'doc',
                             'content' => [
                                 [
                                     'type' => 'paragraph',
                                     'content' => [
-                                        ['type' => 'text', 'text' => 'Confirmed on staging'],
+                                        ['type' => 'text', 'text' => 'Reproduced on iOS 18'],
                                     ],
                                 ],
                             ],
@@ -109,21 +109,21 @@ final class RemoteIssueTest extends TestCase
                     ],
                 ],
                 'total' => 1,
-                'maxResults' => 100,
+                'maxResults' => 50,
             ],
             'GET /rest/api/3/field' => [],
         ]);
 
         $issue = new RemoteIssue(
             $http,
-            new IssueKey('PROJ-42'),
+            new IssueKey('BUG-99'),
             new DescriptionFields($http),
         );
 
         $details = $issue->details();
 
         self::assertSame(
-            'Confirmed on staging',
+            'Reproduced on iOS 18',
             $details['comments'][0]['body'],
             'comment body must be rendered from ADF to plain text',
         );
