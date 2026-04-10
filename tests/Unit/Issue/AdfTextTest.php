@@ -56,7 +56,7 @@ final class AdfTextTest extends TestCase
     {
         $adf = new AdfText([
             'type' => 'mention',
-            'attrs' => ['text' => '@dmitry'],
+            'attrs' => ['id' => 'u-901', 'text' => '@dmitry'],
         ]);
 
         self::assertSame(
@@ -71,7 +71,7 @@ final class AdfTextTest extends TestCase
     {
         $adf = new AdfText([
             'type' => 'inlineCard',
-            'attrs' => ['url' => 'https://jira.example.com/browse/FX-10'],
+            'attrs' => ['data' => ['status' => 'resolved'], 'url' => 'https://jira.example.com/browse/FX-10'],
         ]);
 
         self::assertSame(
@@ -120,6 +120,44 @@ final class AdfTextTest extends TestCase
     }
 
     #[Test]
+    public function rendersOrderedListWithDashes(): void
+    {
+        $adf = new AdfText([
+            'type' => 'orderedList',
+            'content' => [
+                [
+                    'type' => 'listItem',
+                    'content' => [
+                        [
+                            'type' => 'paragraph',
+                            'content' => [
+                                ['type' => 'text', 'text' => 'First'],
+                            ],
+                        ],
+                    ],
+                ],
+                [
+                    'type' => 'listItem',
+                    'content' => [
+                        [
+                            'type' => 'paragraph',
+                            'content' => [
+                                ['type' => 'text', 'text' => 'Second'],
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ]);
+
+        self::assertSame(
+            "- First\n- Second\n",
+            $adf->text(),
+            'ordered list items render as dashes in plaintext',
+        );
+    }
+
+    #[Test]
     public function returnsEmptyStringForEmptyNode(): void
     {
         $adf = new AdfText([]);
@@ -136,7 +174,7 @@ final class AdfTextTest extends TestCase
     {
         $adf = new AdfText([
             'type' => 'embedCard',
-            'attrs' => ['url' => 'https://confluence.example.com/page/42'],
+            'attrs' => ['layout' => 'wide', 'url' => 'https://confluence.example.com/page/42'],
         ]);
 
         self::assertSame(
