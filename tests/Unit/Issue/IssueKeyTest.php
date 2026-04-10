@@ -32,6 +32,26 @@ final class IssueKeyTest extends TestCase
     }
 
     #[Test]
+    public function uppercasesProjectPrefixForNumericInput(): void
+    {
+        self::assertSame(
+            'CORE-305',
+            (new IssueKey('305', 'core'))->value(),
+            'lowercase project prefix must be uppercased',
+        );
+    }
+
+    #[Test]
+    public function treatsAlphanumericInputAsKey(): void
+    {
+        self::assertSame(
+            '718A',
+            (new IssueKey('718a'))->value(),
+            'input with letters must not be treated as numeric',
+        );
+    }
+
+    #[Test]
     public function throwsWhenNumericInputWithoutProject(): void
     {
         $this->expectException(GoblinException::class);

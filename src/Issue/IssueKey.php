@@ -47,6 +47,6 @@ final readonly class IssueKey
             );
         }
 
-        return $this->project . '-' . $number;
+        return strtoupper(trim($this->project)) . '-' . $number;
     }
 }
