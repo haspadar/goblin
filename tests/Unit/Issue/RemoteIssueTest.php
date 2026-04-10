@@ -79,48 +79,25 @@ final class RemoteIssueTest extends TestCase
     #[Test]
     public function returnsCommentBodyAsPlainText(): void
     {
+        $commentBody = [
+            'type' => 'doc',
+            'content' => [
+                ['type' => 'paragraph', 'content' => [['type' => 'text', 'text' => 'Reproduced on iOS 18']]],
+            ],
+        ];
         $http = new FakeHttp([
             'GET /rest/api/3/issue/BUG-99' => [
                 'key' => 'BUG-99',
-                'fields' => [
-                    'summary' => 'Login timeout on mobile',
-                    'description' => [],
-                    'comment' => ['comments' => []],
-                ],
+                'fields' => ['summary' => 'Login timeout on mobile'],
             ],
             'GET /rest/api/3/issue/BUG-99/comment?startAt=0&maxResults=100' => [
-                'comments' => [
-                    [
-                        'id' => '50077',
-                        'author' => ['displayName' => 'Anna Petrova'],
-                        'created' => '2026-04-01T14:30:00.000+0000',
-                        'updated' => '2026-04-01T15:00:00.000+0000',
-                        'body' => [
-                            'type' => 'doc',
-                            'content' => [
-                                [
-                                    'type' => 'paragraph',
-                                    'content' => [
-                                        ['type' => 'text', 'text' => 'Reproduced on iOS 18'],
-                                    ],
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
+                'comments' => [['id' => '50077', 'author' => ['displayName' => 'Anna Petrova'], 'body' => $commentBody]],
                 'total' => 1,
                 'maxResults' => 50,
             ],
             'GET /rest/api/3/field' => [],
         ]);
-
-        $issue = new RemoteIssue(
-            $http,
-            new IssueKey('BUG-99'),
-            new DescriptionFields($http),
-        );
-
-        $details = $issue->details();
+        $details = (new RemoteIssue($http, new IssueKey('BUG-99'), new DescriptionFields($http)))->details();
 
         self::assertSame(
             'Reproduced on iOS 18',
