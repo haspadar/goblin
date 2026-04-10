@@ -41,12 +41,14 @@ final readonly class IssueKey
      */
     private function withProject(string $number): string
     {
-        if ($this->project === '') {
+        $project = strtoupper(trim($this->project));
+
+        if ($project === '') {
             throw new GoblinException(
                 "Cannot resolve numeric key \"{$number}\" without a project prefix",
             );
         }
 
-        return strtoupper(trim($this->project)) . '-' . $number;
+        return $project . '-' . $number;
     }
 }

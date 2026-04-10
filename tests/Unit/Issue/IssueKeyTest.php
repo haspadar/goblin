@@ -52,6 +52,14 @@ final class IssueKeyTest extends TestCase
     }
 
     #[Test]
+    public function throwsWhenProjectIsWhitespaceOnly(): void
+    {
+        $this->expectException(GoblinException::class);
+
+        (new IssueKey('42', '   '))->value();
+    }
+
+    #[Test]
     public function throwsWhenNumericInputWithoutProject(): void
     {
         $this->expectException(GoblinException::class);
