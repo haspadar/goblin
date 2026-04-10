@@ -57,6 +57,37 @@ final class PaginatedCommentsTest extends TestCase
     }
 
     #[Test]
+    public function collectsCommentsAcrossMultiplePages(): void
+    {
+        $comments = new PaginatedComments(
+            new FakeHttp([
+                'GET /rest/api/3/issue/FX-40/comment?startAt=0&maxResults=100' => [
+                    'comments' => [
+                        ['id' => '101', 'body' => ['type' => 'doc']],
+                        ['id' => '102', 'body' => ['type' => 'doc']],
+                    ],
+                    'total' => 3,
+                    'maxResults' => 2,
+                ],
+                'GET /rest/api/3/issue/FX-40/comment?startAt=2&maxResults=100' => [
+                    'comments' => [
+                        ['id' => '103', 'body' => ['type' => 'doc']],
+                    ],
+                    'total' => 3,
+                    'maxResults' => 2,
+                ],
+            ]),
+            'FX-40',
+        );
+
+        self::assertCount(
+            3,
+            $comments->all(),
+            'multiple pages must be collected into single result',
+        );
+    }
+
+    #[Test]
     public function skipsNonArrayEntries(): void
     {
         $comments = new PaginatedComments(
