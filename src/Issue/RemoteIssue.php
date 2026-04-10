@@ -44,26 +44,19 @@ final readonly class RemoteIssue implements Issue
     #[Override]
     public function description(): string
     {
-        return $this->issue()->description();
+        $key = $this->key->value();
+        $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
+
+        return (new JiraIssue($payload, $this->fields->names()))->description();
     }
 
     #[Override]
     public function raw(): array
     {
-        return $this->issue()->raw();
-    }
-
-    /**
-     * Loads and wraps a single Jira issue.
-     *
-     * @throws GoblinException
-     */
-    private function issue(): Issue
-    {
-        $key = $this->key->value();
-        $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
-
-        return new JiraIssue($payload, $this->fields->names());
+        return $this->http->json(
+            'GET',
+            "/rest/api/3/issue/{$this->key->value()}",
+        );
     }
 
     /**

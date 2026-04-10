@@ -35,7 +35,7 @@ final readonly class PaginatedComments
                 "/rest/api/3/issue/{$this->key}/comment?startAt={$startAt}&maxResults={$maxResults}",
             );
 
-            $result = [...$result, ...$this->extractComments($page)];
+            array_push($result, ...$this->extractComments($page));
             $pageSize = $this->pageSize($page, $maxResults);
             $startAt += $pageSize;
         } while ($startAt < $this->int($page, 'total'));
