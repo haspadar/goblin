@@ -147,6 +147,21 @@ final class AdfTextTest extends TestCase
     }
 
     #[Test]
+    public function rendersEmptyWhenAttrsIsNotArray(): void
+    {
+        $adf = new AdfText([
+            'type' => 'mention',
+            'attrs' => 'invalid',
+        ]);
+
+        self::assertSame(
+            '',
+            $adf->text(),
+            'non-array attrs must produce empty string',
+        );
+    }
+
+    #[Test]
     public function rendersHeadingWithDoubleNewline(): void
     {
         $adf = new AdfText([
