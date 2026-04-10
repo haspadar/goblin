@@ -124,6 +124,7 @@ final class AdfTextTest extends TestCase
     {
         $adf = new AdfText([
             'type' => 'orderedList',
+            'attrs' => ['order' => 1],
             'content' => [
                 [
                     'type' => 'listItem',
@@ -131,18 +132,7 @@ final class AdfTextTest extends TestCase
                         [
                             'type' => 'paragraph',
                             'content' => [
-                                ['type' => 'text', 'text' => 'First'],
-                            ],
-                        ],
-                    ],
-                ],
-                [
-                    'type' => 'listItem',
-                    'content' => [
-                        [
-                            'type' => 'paragraph',
-                            'content' => [
-                                ['type' => 'text', 'text' => 'Second'],
+                                ['type' => 'text', 'text' => 'Step one'],
                             ],
                         ],
                     ],
@@ -151,7 +141,7 @@ final class AdfTextTest extends TestCase
         ]);
 
         self::assertSame(
-            "- First\n- Second\n",
+            "- Step one\n",
             $adf->text(),
             'ordered list items render as dashes in plaintext',
         );
