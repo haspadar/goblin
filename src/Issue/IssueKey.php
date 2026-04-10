@@ -8,6 +8,8 @@ use Goblin\GoblinException;
 
 /**
  * Normalized Jira issue key from user input.
+ *
+ * @psalm-api
  */
 final readonly class IssueKey
 {

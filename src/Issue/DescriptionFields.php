@@ -9,6 +9,8 @@ use Goblin\Http\Http;
 
 /**
  * Discovers ADF text fields from Jira field metadata.
+ *
+ * @psalm-api
  */
 final readonly class DescriptionFields
 {
