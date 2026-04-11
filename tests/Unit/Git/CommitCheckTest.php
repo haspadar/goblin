@@ -24,13 +24,13 @@ final class CommitCheckTest extends TestCase
     }
 
     #[Test]
-    public function passesWhenBranchHasNoKey(): void
+    public function passesWhenNeitherHasKey(): void
     {
         $check = new CommitCheck('main', 'routine cleanup', self::REGEX);
 
         $check->validate();
 
-        self::assertTrue(true, 'branch without key must skip validation');
+        self::assertTrue(true, 'no keys on either side must skip validation');
     }
 
     #[Test]
@@ -51,6 +51,17 @@ final class CommitCheckTest extends TestCase
         $check->validate();
 
         self::assertTrue(true, 'pull request merges must be skipped');
+    }
+
+    #[Test]
+    public function throwsWhenMessageHasKeyButBranchDoesNot(): void
+    {
+        $check = new CommitCheck('feature-login', 'CORE-77 add login page', self::REGEX);
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('branch has no issue key');
+
+        $check->validate();
     }
 
     #[Test]

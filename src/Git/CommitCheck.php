@@ -29,16 +29,22 @@ final readonly class CommitCheck
      */
     public function validate(): void
     {
-        if (!$this->branchHasKey()) {
-            return;
-        }
-
         if ($this->isMergeCommit()) {
             return;
         }
 
         $branchKey = $this->keyFrom($this->branch);
         $messageKey = $this->keyFrom($this->message);
+
+        if ($branchKey === '' && $messageKey === '') {
+            return;
+        }
+
+        if ($branchKey === '') {
+            throw new GoblinException(
+                "Commit message contains {$messageKey}, but branch has no issue key",
+            );
+        }
 
         if ($messageKey === '') {
             throw new GoblinException(
@@ -51,11 +57,6 @@ final readonly class CommitCheck
                 "Branch issue key ({$branchKey}) differs from commit message ({$messageKey})",
             );
         }
-    }
-
-    private function branchHasKey(): bool
-    {
-        return preg_match($this->projectRegex, $this->branch) === 1;
     }
 
     private function isMergeCommit(): bool
