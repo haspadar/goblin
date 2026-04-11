@@ -11,10 +11,18 @@ use Goblin\Git\Git;
  */
 final readonly class FakeGit implements Git
 {
-    public function __construct(private string $branch) {}
+    public function __construct(
+        private string $branch,
+        private string $parent = 'main',
+    ) {}
 
     public function currentBranch(): string
     {
         return $this->branch;
+    }
+
+    public function parentBranch(): string
+    {
+        return $this->parent;
     }
 }
