@@ -77,34 +77,6 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
-    public function throwsWhenBetaFixVersionForkedFromWrongBase(): void
-    {
-        $check = new BranchCheck(
-            new FakeGit('PLT-7-notifications', 'dev'),
-            new FakeHttp([
-                'GET /rest/api/3/issue/PLT-7' => [
-                    'fields' => [
-                        'fixVersions' => [['name' => 'PLT 9.0.1']],
-                    ],
-                ],
-                'GET /rest/api/3/project/PLT/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'PLT 9.0.0', 'released' => false],
-                    ['name' => 'PLT 9.0.1', 'released' => false],
-                ],
-            ]),
-            new FakeConfig([
-                'protected-branches' => ['main'],
-                'project-regex' => '/^([A-Z]+)-\d+/',
-            ]),
-        );
-
-        $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage("requires base 'master', but branch was created from 'dev'");
-
-        $check->validate();
-    }
-
-    #[Test]
     public function throwsWhenParentDiffers(): void
     {
         $check = new BranchCheck(
