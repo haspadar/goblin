@@ -77,10 +77,10 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
-    public function passesWhenBetaFixVersionForksFromMaster(): void
+    public function throwsWhenBetaFixVersionForkedFromWrongBase(): void
     {
         $check = new BranchCheck(
-            new FakeGit('PLT-7-notifications', 'master'),
+            new FakeGit('PLT-7-notifications', 'dev'),
             new FakeHttp([
                 'GET /rest/api/3/issue/PLT-7' => [
                     'fields' => [
@@ -98,9 +98,10 @@ final class BranchCheckTest extends TestCase
             ]),
         );
 
-        $check->validate();
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage("requires base 'master', but branch was created from 'dev'");
 
-        self::assertTrue(true, 'beta fix version must require master as base');
+        $check->validate();
     }
 
     #[Test]
