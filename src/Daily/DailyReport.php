@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Goblin\Daily;
 
-use DateMalformedStringException;
-use DateTime;
 use Goblin\GoblinException;
 
 /**
@@ -25,7 +23,6 @@ final readonly class DailyReport
     /**
      * Returns formatted daily report text.
      *
-     * @throws DateMalformedStringException
      * @throws GoblinException
      */
     public function text(): string
@@ -67,7 +64,6 @@ final readonly class DailyReport
     /**
      * Finds last active day within 7 days.
      *
-     * @throws DateMalformedStringException
      * @throws GoblinException
      * @return array{text: string, keys: list<string>}|null
      */
@@ -76,15 +72,18 @@ final readonly class DailyReport
         $i = 1;
 
         while ($i <= 7) {
+            $before = $i === 1
+                ? 'startOfDay()'
+                : 'startOfDay(-' . ($i - 1) . 'd)';
             $jql = $this->projectJql()
                 . 'status CHANGED BY currentUser() '
-                . "AFTER startOfDay(-{$i}d) BEFORE startOfDay(-" . ($i - 1) . 'd)';
+                . "AFTER startOfDay(-{$i}d) BEFORE {$before}";
 
             $keys = $this->search->keys($jql);
 
             if ($keys !== []) {
                 return [
-                    'text' => $this->dayLabel($i) . ': ' . implode(', ', $keys),
+                    'text' => (new DayLabel($i))->text() . ': ' . implode(', ', $keys),
                     'keys' => $keys,
                 ];
             }
@@ -142,32 +141,7 @@ final readonly class DailyReport
     private function projectJql(): string
     {
         return $this->project !== ''
-            ? "project = {$this->project} AND "
+            ? "project = \"{$this->project}\" AND "
             : '';
-    }
-
-    /**
-     * Returns human-readable day label.
-     *
-     * @throws DateMalformedStringException
-     */
-    private function dayLabel(int $daysAgo): string
-    {
-        if ($daysAgo === 1) {
-            return 'Вчера';
-        }
-
-        $day = (new DateTime("-{$daysAgo} days"))->format('l');
-
-        return match ($day) {
-            'Monday' => 'В понедельник',
-            'Tuesday' => 'Во вторник',
-            'Wednesday' => 'В среду',
-            'Thursday' => 'В четверг',
-            'Friday' => 'В пятницу',
-            'Saturday' => 'В субботу',
-            'Sunday' => 'В воскресенье',
-            default => $day,
-        };
     }
 }

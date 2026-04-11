@@ -22,11 +22,9 @@ final class DailyReportTest extends TestCase
             'PLT',
         );
 
-        $text = $report->text();
-
         self::assertStringContainsString(
             'PLT-10',
-            $text,
+            $report->text(),
             'report must include issue key from last activity',
         );
     }
@@ -40,11 +38,9 @@ final class DailyReportTest extends TestCase
             'CRS',
         );
 
-        $text = $report->text();
-
         self::assertStringContainsString(
             'Делаю: CRS-5',
-            $text,
+            $report->text(),
             'report must show in-progress issues',
         );
     }
@@ -58,11 +54,9 @@ final class DailyReportTest extends TestCase
             'OPS',
         );
 
-        $text = $report->text();
-
         self::assertStringContainsString(
             'В очереди: OPS-7',
-            $text,
+            $report->text(),
             'report must show queued issues',
         );
     }
@@ -76,11 +70,9 @@ final class DailyReportTest extends TestCase
             'CRS',
         );
 
-        $text = $report->text();
-
         self::assertStringContainsString(
             'https://jira.example.com/browse/CRS-5',
-            $text,
+            $report->text(),
             'report must append clickable Jira links',
         );
     }
@@ -103,18 +95,14 @@ final class DailyReportTest extends TestCase
     #[Test]
     public function worksWithoutProjectFilter(): void
     {
-        $http = new FakeHttp($this->allProjectResponses());
-
         $report = new DailyReport(
-            new JiraSearch($http),
+            new JiraSearch(new FakeHttp($this->allProjectResponses())),
             'https://jira.example.com',
         );
 
-        $text = $report->text();
-
         self::assertStringContainsString(
             'DEV-1',
-            $text,
+            $report->text(),
             'report without project must still return results',
         );
     }
@@ -122,12 +110,12 @@ final class DailyReportTest extends TestCase
     private function httpWithActivity(): FakeHttp
     {
         $responses = $this->emptySearchResponses('PLT');
-        $activityJql = 'project = PLT AND '
+        $activityJql = 'project = "PLT" AND '
             . 'status CHANGED BY currentUser() '
-            . 'AFTER startOfDay(-1d) BEFORE startOfDay(-0d)';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $activityJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => [['key' => 'PLT-10']]];
+            . 'AFTER startOfDay(-1d) BEFORE startOfDay()';
+        $responses[$this->searchUrl($activityJql)] = [
+            'issues' => [['key' => 'PLT-10']],
+        ];
 
         return new FakeHttp($responses);
     }
@@ -135,11 +123,11 @@ final class DailyReportTest extends TestCase
     private function httpWithInProgress(): FakeHttp
     {
         $responses = $this->emptySearchResponses('CRS');
-        $inProgressJql = 'project = CRS AND '
+        $jql = 'project = "CRS" AND '
             . 'assignee = currentUser() AND status = "In Progress"';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $inProgressJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => [['key' => 'CRS-5']]];
+        $responses[$this->searchUrl($jql)] = [
+            'issues' => [['key' => 'CRS-5']],
+        ];
 
         return new FakeHttp($responses);
     }
@@ -147,14 +135,14 @@ final class DailyReportTest extends TestCase
     private function httpWithQueue(): FakeHttp
     {
         $responses = $this->emptySearchResponses('OPS');
-        $queueJql = 'project = OPS AND '
+        $jql = 'project = "OPS" AND '
             . 'sprint in openSprints() '
             . 'AND assignee = currentUser() '
             . 'AND status != Backlog '
             . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $queueJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => [['key' => 'OPS-7']]];
+        $responses[$this->searchUrl($jql)] = [
+            'issues' => [['key' => 'OPS-7']],
+        ];
 
         return new FakeHttp($responses);
     }
@@ -164,6 +152,15 @@ final class DailyReportTest extends TestCase
         return new FakeHttp($this->emptySearchResponses('EMPTY'));
     }
 
+    private function searchUrl(string $jql): string
+    {
+        return 'GET /rest/api/3/search/jql?' . http_build_query([
+            'jql' => $jql,
+            'fields' => 'key',
+            'maxResults' => 50,
+        ]);
+    }
+
     /**
      * @return array<string, array<string, mixed>>
      */
@@ -171,24 +168,21 @@ final class DailyReportTest extends TestCase
     {
         $responses = [];
 
-        $activityJql = 'status CHANGED BY currentUser() '
-            . 'AFTER startOfDay(-1d) BEFORE startOfDay(-0d)';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $activityJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => [['key' => 'DEV-1']]];
+        $responses[$this->searchUrl(
+            'status CHANGED BY currentUser() '
+            . 'AFTER startOfDay(-1d) BEFORE startOfDay()',
+        )] = ['issues' => [['key' => 'DEV-1']]];
 
-        $inProgressJql = 'assignee = currentUser() AND status = "In Progress"';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $inProgressJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => []];
+        $responses[$this->searchUrl(
+            'assignee = currentUser() AND status = "In Progress"',
+        )] = ['issues' => []];
 
-        $queueJql = 'sprint in openSprints() '
+        $responses[$this->searchUrl(
+            'sprint in openSprints() '
             . 'AND assignee = currentUser() '
             . 'AND status != Backlog '
-            . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $queueJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => []];
+            . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)',
+        )] = ['issues' => []];
 
         return $responses;
     }
@@ -201,28 +195,25 @@ final class DailyReportTest extends TestCase
         $responses = [];
 
         for ($i = 1; $i <= 7; $i++) {
-            $jql = "project = {$project} AND "
+            $before = $i === 1 ? 'startOfDay()' : 'startOfDay(-' . ($i - 1) . 'd)';
+            $jql = "project = \"{$project}\" AND "
                 . 'status CHANGED BY currentUser() '
-                . "AFTER startOfDay(-{$i}d) BEFORE startOfDay(-" . ($i - 1) . 'd)';
-            $responses['GET /rest/api/3/search/jql?' . http_build_query([
-                'jql' => $jql, 'fields' => 'key', 'maxResults' => 50,
-            ])] = ['issues' => []];
+                . "AFTER startOfDay(-{$i}d) BEFORE {$before}";
+            $responses[$this->searchUrl($jql)] = ['issues' => []];
         }
 
-        $inProgressJql = "project = {$project} AND "
-            . 'assignee = currentUser() AND status = "In Progress"';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $inProgressJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => []];
+        $responses[$this->searchUrl(
+            "project = \"{$project}\" AND "
+            . 'assignee = currentUser() AND status = "In Progress"',
+        )] = ['issues' => []];
 
-        $queueJql = "project = {$project} AND "
+        $responses[$this->searchUrl(
+            "project = \"{$project}\" AND "
             . 'sprint in openSprints() '
             . 'AND assignee = currentUser() '
             . 'AND status != Backlog '
-            . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)';
-        $responses['GET /rest/api/3/search/jql?' . http_build_query([
-            'jql' => $queueJql, 'fields' => 'key', 'maxResults' => 50,
-        ])] = ['issues' => []];
+            . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)',
+        )] = ['issues' => []];
 
         return $responses;
     }
