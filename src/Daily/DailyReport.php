@@ -140,8 +140,12 @@ final readonly class DailyReport
      */
     private function projectJql(): string
     {
-        return $this->project !== ''
-            ? "project = \"{$this->project}\" AND "
-            : '';
+        if ($this->project === '') {
+            return '';
+        }
+
+        $escaped = addcslashes($this->project, '"\\');
+
+        return "project = \"{$escaped}\" AND ";
     }
 }

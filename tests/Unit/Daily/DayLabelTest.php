@@ -25,10 +25,10 @@ final class DayLabelTest extends TestCase
     {
         $label = (new DayLabel(2))->text();
 
-        self::assertMatchesRegularExpression(
-            '/^В[о ]?\s?\S+/',
+        self::assertContains(
             $label,
-            'two days ago must return a Russian weekday name',
+            ['В понедельник', 'Во вторник', 'В среду', 'В четверг', 'В пятницу', 'В субботу', 'В воскресенье'],
+            'two days ago must return a valid Russian weekday name',
         );
     }
 }
