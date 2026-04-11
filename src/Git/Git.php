@@ -19,4 +19,11 @@ interface Git
      * @throws GoblinException
      */
     public function currentBranch(): string;
+
+    /**
+     * Returns the parent branch from which current was created.
+     *
+     * @throws GoblinException
+     */
+    public function parentBranch(): string;
 }
