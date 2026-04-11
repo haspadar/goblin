@@ -96,4 +96,15 @@ final class CommitCheckTest extends TestCase
 
         $check->validate();
     }
+
+    #[Test]
+    public function throwsOnInvalidRegex(): void
+    {
+        $check = new CommitCheck('PROJ-1-work', 'PROJ-1 done', '/(unclosed');
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('Invalid project regex');
+
+        $check->validate();
+    }
 }

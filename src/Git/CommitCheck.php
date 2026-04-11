@@ -67,9 +67,22 @@ final readonly class CommitCheck
         ) === 1;
     }
 
+    /**
+     * Extracts issue key from text using project regex.
+     *
+     * @throws GoblinException
+     */
     private function keyFrom(string $text): string
     {
-        return preg_match($this->projectRegex, $text, $m) === 1
+        $result = @preg_match($this->projectRegex, $text, $m);
+
+        if ($result === false) {
+            throw new GoblinException(
+                "Invalid project regex: {$this->projectRegex}",
+            );
+        }
+
+        return $result === 1
             ? $m[0]
             : '';
     }
