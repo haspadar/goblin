@@ -77,6 +77,34 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
+    public function passesWhenBetaFixVersionForksFromMaster(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('MSP-42-login-page', 'master'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/MSP-42' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'MSP 14.0.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name' => [
+                    ['name' => 'MSP 14.0.0', 'released' => false],
+                    ['name' => 'MSP 14.0.1', 'released' => false],
+                    ['name' => 'MSP 15.0.0', 'released' => false],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'beta fix version must require master as base');
+    }
+
+    #[Test]
     public function throwsWhenParentDiffers(): void
     {
         $check = new BranchCheck(
