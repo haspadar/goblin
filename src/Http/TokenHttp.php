@@ -32,10 +32,11 @@ final readonly class TokenHttp implements Http
         $this->configure($curl, $method, $body);
         $response = curl_exec($curl);
         $code = intval(curl_getinfo($curl, CURLINFO_HTTP_CODE));
+        $error = curl_error($curl);
         unset($curl);
 
         if (!is_string($response)) {
-            throw new GoblinException("Request failed: {$method} {$path}");
+            throw new GoblinException("Request failed: {$method} {$path} ({$error})");
         }
 
         if ($code >= 400) {

@@ -45,13 +45,13 @@ final readonly class GitLabMergeRequest
     /**
      * Lists merge requests with optional query filters.
      *
-     * @param array<string, string> $filters
+     * @param array<string, mixed> $filters
      * @throws GoblinException
      * @return array<string, mixed>
      */
     public function list(array $filters = []): array
     {
-        $clean = array_filter($filters, static fn(string $v): bool => $v !== '');
+        $clean = array_filter($filters, static fn(mixed $v): bool => $v !== '');
         $query = $clean === []
             ? ''
             : '?' . http_build_query($clean);
