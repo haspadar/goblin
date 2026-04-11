@@ -39,7 +39,7 @@ final readonly class TokenHttp implements Http
             throw new GoblinException("Request failed: {$method} {$path} ({$error})");
         }
 
-        if ($code >= 400) {
+        if ($code < 200 || $code >= 300) {
             throw new GoblinException("HTTP {$code}: {$method} {$path}");
         }
 
@@ -65,6 +65,8 @@ final readonly class TokenHttp implements Http
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_CUSTOMREQUEST => $method,
+            CURLOPT_CONNECTTIMEOUT => 10,
+            CURLOPT_TIMEOUT => 30,
         ]);
 
         if ($body !== []) {

@@ -14,17 +14,16 @@ final class GitLabMergeRequestTest extends TestCase
     #[Test]
     public function createsWithCorrectPayload(): void
     {
-        $mr = new GitLabMergeRequest(
-            new FakeHttp([
-                'POST /projects/web%2Fportal/merge_requests' => [
-                    'iid' => 42,
-                    'title' => 'Enable dark mode',
-                ],
-            ]),
-            'web/portal',
-        );
+        $http = new FakeHttp([
+            'POST /projects/web%2Fportal/merge_requests' => [
+                'iid' => 42,
+                'title' => 'Enable dark mode',
+            ],
+        ]);
 
-        $result = $mr->create([
+        $mr = new GitLabMergeRequest($http, 'web/portal');
+
+        $mr->create([
             'source_branch' => 'dark-mode',
             'target_branch' => 'main',
             'title' => 'Enable dark mode',
@@ -32,9 +31,14 @@ final class GitLabMergeRequestTest extends TestCase
         ]);
 
         self::assertSame(
-            42,
-            $result['iid'],
-            'created MR must return iid from API response',
+            [
+                'source_branch' => 'dark-mode',
+                'target_branch' => 'main',
+                'title' => 'Enable dark mode',
+                'description' => 'Adds theme toggle',
+            ],
+            $http->lastBody(),
+            'create must send all params as request body',
         );
     }
 
@@ -65,7 +69,8 @@ final class GitLabMergeRequestTest extends TestCase
         $mr = new GitLabMergeRequest(
             new FakeHttp([
                 'GET /projects/mobile%2Fapp/merge_requests?state=opened' => [
-                    'items' => [['iid' => 3], ['iid' => 5]],
+                    ['iid' => 3],
+                    ['iid' => 5],
                 ],
             ]),
             'mobile/app',
@@ -73,7 +78,7 @@ final class GitLabMergeRequestTest extends TestCase
 
         self::assertCount(
             2,
-            $mr->list(['state' => 'opened'])['items'],
+            $mr->list(['state' => 'opened']),
             'list must return filtered MRs from API',
         );
     }
@@ -81,20 +86,21 @@ final class GitLabMergeRequestTest extends TestCase
     #[Test]
     public function updatesFields(): void
     {
-        $mr = new GitLabMergeRequest(
-            new FakeHttp([
-                'PUT /projects/infra%2Fdeploy/merge_requests/11' => [
-                    'iid' => 11,
-                    'title' => 'Canary rollout v2',
-                ],
-            ]),
-            'infra/deploy',
-        );
+        $http = new FakeHttp([
+            'PUT /projects/infra%2Fdeploy/merge_requests/11' => [
+                'iid' => 11,
+                'title' => 'Canary rollout v2',
+            ],
+        ]);
+
+        $mr = new GitLabMergeRequest($http, 'infra/deploy');
+
+        $mr->update(11, ['title' => 'Canary rollout v2']);
 
         self::assertSame(
-            'Canary rollout v2',
-            $mr->update(11, ['title' => 'Canary rollout v2'])['title'],
-            'update must pass changes to API',
+            ['title' => 'Canary rollout v2'],
+            $http->lastBody(),
+            'update must send changes as request body',
         );
     }
 
@@ -104,7 +110,7 @@ final class GitLabMergeRequestTest extends TestCase
         $mr = new GitLabMergeRequest(
             new FakeHttp([
                 'GET /projects/ops%2Fmonitor/merge_requests' => [
-                    'items' => [['iid' => 1]],
+                    ['iid' => 1],
                 ],
             ]),
             'ops/monitor',
@@ -112,7 +118,7 @@ final class GitLabMergeRequestTest extends TestCase
 
         self::assertCount(
             1,
-            $mr->list()['items'],
+            $mr->list(),
             'list without filters must request all MRs',
         );
     }

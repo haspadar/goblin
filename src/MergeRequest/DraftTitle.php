@@ -21,7 +21,7 @@ final readonly class DraftTitle
      */
     public function drafted(): string
     {
-        if (preg_match('/^(Draft:|WIP:)\s/i', $this->title) === 1) {
+        if (preg_match('/^(Draft:|WIP:)\s*/i', $this->title) === 1) {
             return $this->title;
         }
 
