@@ -77,6 +77,24 @@ final class VersionMappingTest extends TestCase
     }
 
     #[Test]
+    public function mapsAboveStageToDevWithTwoBetas(): void
+    {
+        $mapping = new VersionMapping([
+            'PROJ 14.0.0',
+            'PROJ 14.0.1',
+            'PROJ 15.0.0',
+            'PROJ 15.0.1',
+            'PROJ 16.0.0',
+        ]);
+
+        self::assertSame(
+            'dev',
+            $mapping->branchFor('PROJ 16.0.0'),
+            'version above stage must map to dev in multi-beta scenario',
+        );
+    }
+
+    #[Test]
     public function throwsForUnknownVersion(): void
     {
         $mapping = new VersionMapping(['PROJ 14.0.0']);

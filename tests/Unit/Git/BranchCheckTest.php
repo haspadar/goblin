@@ -125,4 +125,74 @@ final class BranchCheckTest extends TestCase
 
         $check->validate();
     }
+
+    #[Test]
+    public function throwsOnInvalidProjectRegex(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('PROJ-1-task', 'main'),
+            new FakeHttp([]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/(unclosed',
+            ]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('Invalid project regex');
+
+        $check->validate();
+    }
+
+    #[Test]
+    public function throwsWhenFixVersionNameIsNotString(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('DEV-5-api', 'master'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/DEV-5' => [
+                    'fields' => [
+                        'fixVersions' => [['id' => '999']],
+                    ],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+            ]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('has no Fix Version');
+
+        $check->validate();
+    }
+
+    #[Test]
+    public function skipsNonArrayVersionEntries(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('QA-3-smoke', 'master'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/QA-3' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'QA 8.0.0']],
+                    ],
+                ],
+                'GET /rest/api/3/project/QA/version?status=unreleased&orderBy=name' => [
+                    'invalid-string',
+                    ['name' => 'QA 8.0.0', 'released' => false],
+                    ['name' => 'QA 8.0.1', 'released' => false],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'non-array entries in versions list must be skipped');
+    }
 }
