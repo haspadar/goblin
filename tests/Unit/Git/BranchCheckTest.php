@@ -80,17 +80,16 @@ final class BranchCheckTest extends TestCase
     public function passesWhenBetaFixVersionForksFromMaster(): void
     {
         $check = new BranchCheck(
-            new FakeGit('MSP-42-login-page', 'master'),
+            new FakeGit('PLT-7-notifications', 'master'),
             new FakeHttp([
-                'GET /rest/api/3/issue/MSP-42' => [
+                'GET /rest/api/3/issue/PLT-7' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'MSP 14.0.1']],
+                        'fixVersions' => [['name' => 'PLT 9.0.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'MSP 14.0.0', 'released' => false],
-                    ['name' => 'MSP 14.0.1', 'released' => false],
-                    ['name' => 'MSP 15.0.0', 'released' => false],
+                'GET /rest/api/3/project/PLT/version?status=unreleased&orderBy=name' => [
+                    ['name' => 'PLT 9.0.0', 'released' => false],
+                    ['name' => 'PLT 9.0.1', 'released' => false],
                 ],
             ]),
             new FakeConfig([
