@@ -26,10 +26,12 @@ final readonly class ShellDocker implements Docker
     #[Override]
     public function exec(string $container, string $command): int
     {
-        passthru(
-            'docker exec ' . escapeshellarg($container) . ' ' . $command,
+        exec(
+            'docker exec ' . escapeshellarg($container) . ' ' . $command . ' 2>&1',
+            $lines,
             $code,
         );
+        echo implode("\n", $lines);
 
         return $code;
     }
