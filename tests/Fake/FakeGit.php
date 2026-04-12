@@ -14,6 +14,7 @@ final readonly class FakeGit implements Git
     public function __construct(
         private string $branch,
         private string $parent = 'main',
+        private string $remote = 'git@gitlab.example.com:group/project.git',
     ) {}
 
     public function currentBranch(): string
@@ -24,5 +25,10 @@ final readonly class FakeGit implements Git
     public function parentBranch(): string
     {
         return $this->parent;
+    }
+
+    public function remote(): string
+    {
+        return $this->remote;
     }
 }
