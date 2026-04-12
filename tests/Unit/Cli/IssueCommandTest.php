@@ -123,6 +123,32 @@ final class IssueCommandTest extends TestCase
         );
     }
 
+    #[Test]
+    public function worksOnBranchWithoutProjectPrefix(): void
+    {
+        $cmd = new IssueCommand(
+            new FakeHttp([
+                'GET /rest/api/3/issue/PROJ-10' => [
+                    'key' => 'PROJ-10',
+                    'fields' => ['summary' => 'No prefix branch'],
+                ],
+                'GET /rest/api/3/field' => [],
+            ]),
+            new FakeGit('dev'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
+        );
+
+        ob_start();
+        $code = $cmd->run(new Arguments('issue', [], ['PROJ-10', 'raw']));
+        ob_end_clean();
+
+        self::assertSame(
+            0,
+            $code,
+            'must work with full key when branch has no project prefix',
+        );
+    }
+
     /**
      * @return FakeHttp
      */
