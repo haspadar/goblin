@@ -118,6 +118,25 @@ final class TestCommandTest extends TestCase
     }
 
     #[Test]
+    public function outputsErrorMessageOnFailure(): void
+    {
+        $output = new FakeOutput();
+        $cmd = new TestCommand(
+            new FakeDocker(running: true, exitCode: 1),
+            new FakeConfig(['container' => 'payments']),
+            $output,
+        );
+
+        $cmd->run(new Arguments('test', [], []));
+
+        self::assertSame(
+            'Tests failed.',
+            $output->errors[0] ?? '',
+            'must output error message when tests fail',
+        );
+    }
+
+    #[Test]
     public function usesContainerFromConfig(): void
     {
         $docker = new FakeDocker(running: true, exitCode: 0);

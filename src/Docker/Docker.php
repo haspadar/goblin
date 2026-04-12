@@ -17,7 +17,9 @@ interface Docker
     public function isRunning(string $container): bool;
 
     /**
-     * Runs a command inside a container and returns exit code.
+     * Runs a trusted command inside a container and returns exit code.
+     *
+     * @param string $command Shell command from a trusted source (not user input)
      */
     public function exec(string $container, string $command): int;
 }
