@@ -5,14 +5,35 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
+use Goblin\Cli\BranchCheckCommand;
+use Goblin\Cli\CommitCheckCommand;
+use Goblin\Cli\DailyCommand;
+use Goblin\Cli\IssueCommand;
 use Goblin\Cli\ParsedArgv;
 use Goblin\Cli\RoutedCommand;
+use Goblin\Config\ConfigFile;
+use Goblin\Config\FileConfig;
+use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
+use Goblin\Http\CurlHttp;
 
 $args = (new ParsedArgv($argv))->arguments();
+$configPath = dirname(__DIR__) . '/.goblin.php';
 
 try {
-    $code = (new RoutedCommand([]))->run($args);
+    $config = new FileConfig((new ConfigFile($configPath))->data());
+    $http = new CurlHttp(
+        $config->value('jira-url'),
+        $config->value('jira-user'),
+        $config->value('jira-token'),
+    );
+
+    $code = (new RoutedCommand([
+        'issue' => new IssueCommand($http, $config),
+        'daily' => new DailyCommand($http, $config),
+        'branch-check' => new BranchCheckCommand(new ShellGit(), $http, $config),
+        'commit-check' => new CommitCheckCommand($config),
+    ]))->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);
     $code = 1;
