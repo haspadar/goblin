@@ -65,11 +65,17 @@ final readonly class MrCommand implements Command
      */
     private function created(GitLabMergeRequest $mr, Arguments $args): array
     {
+        $source = $args->option('source');
+        $target = $args->option('target');
         $title = $args->option('title');
 
+        if ($source === '' || $target === '' || $title === '') {
+            throw new GoblinException('Options --source, --target and --title are required');
+        }
+
         return $mr->create([
-            'source_branch' => $args->option('source'),
-            'target_branch' => $args->option('target'),
+            'source_branch' => $source,
+            'target_branch' => $target,
             'title' => $args->flag('draft')
                 ? (new DraftTitle($title))->drafted()
                 : $title,
@@ -94,6 +100,10 @@ final readonly class MrCommand implements Command
             ],
             static fn(string $v): bool => $v !== '',
         );
+
+        if ($args->flag('draft') && $args->flag('ready')) {
+            throw new GoblinException('Options --draft and --ready are mutually exclusive');
+        }
 
         if ($args->flag('draft') || $args->flag('ready')) {
             $explicit = $args->option('title');

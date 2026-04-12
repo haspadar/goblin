@@ -31,19 +31,25 @@ try {
     );
 
     $git = new ShellGit();
-    $gitlab = new TokenHttp(
-        $config->value('gitlab-url') . '/api/v4',
-        'PRIVATE-TOKEN',
-        $config->value('gitlab-token'),
-    );
-
-    $code = (new RoutedCommand([
+    $commands = [
         'issue' => new IssueCommand($http, $config),
         'daily' => new DailyCommand($http, $config),
         'branch-check' => new BranchCheckCommand($git, $http, $config),
         'commit-check' => new CommitCheckCommand($config),
-        'mr' => new MrCommand($git, $gitlab),
-    ]))->run($args);
+    ];
+
+    if ($config->has('gitlab-url') && $config->has('gitlab-token')) {
+        $commands['mr'] = new MrCommand(
+            $git,
+            new TokenHttp(
+                $config->value('gitlab-url') . '/api/v4',
+                'PRIVATE-TOKEN',
+                $config->value('gitlab-token'),
+            ),
+        );
+    }
+
+    $code = (new RoutedCommand($commands))->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);
     $code = 1;

@@ -152,4 +152,32 @@ final class MrCommandTest extends TestCase
 
         $cmd->run(new Arguments('mr', [], ['view']));
     }
+
+    #[Test]
+    public function throwsForMissingRequiredCreateOptions(): void
+    {
+        $cmd = new MrCommand(
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:any/project.git'),
+            new FakeHttp([]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('--source, --target and --title are required');
+
+        $cmd->run(new Arguments('mr', [], ['create']));
+    }
+
+    #[Test]
+    public function throwsForConflictingDraftAndReady(): void
+    {
+        $cmd = new MrCommand(
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:any/project.git'),
+            new FakeHttp([]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('--draft and --ready are mutually exclusive');
+
+        $cmd->run(new Arguments('mr', ['draft' => true, 'ready' => true], ['update', '5']));
+    }
 }
