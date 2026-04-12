@@ -28,13 +28,11 @@ final readonly class ShellGit implements Git
     public function parentBranch(): string
     {
         $branch = $this->currentBranch();
-        $cmd = sprintf(
-            "git reflog --date=iso | grep 'checkout: moving from' | grep 'to %s' | tail -n 1",
-            escapeshellarg($branch),
-        );
-        $output = trim($this->exec($cmd));
+        $reflog = $this->exec('git reflog --date=iso');
+        $pattern = '/checkout: moving from ([^ ]+) to '
+            . preg_quote($branch, '/') . '$/m';
 
-        if (preg_match('/moving from ([^ ]+) to/', $output, $m) !== 1) {
+        if (preg_match($pattern, $reflog, $m) !== 1) {
             throw new GoblinException('Failed to determine parent branch');
         }
 
