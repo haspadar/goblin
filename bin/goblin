@@ -1,0 +1,21 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Goblin\Cli\ParsedArgv;
+use Goblin\Cli\RoutedCommand;
+use Goblin\GoblinException;
+
+$args = (new ParsedArgv($argv))->arguments();
+
+try {
+    $code = (new RoutedCommand([]))->run($args);
+} catch (GoblinException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+    $code = 1;
+}
+
+exit($code);
