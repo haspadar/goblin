@@ -8,6 +8,7 @@ require __DIR__ . '/../vendor/autoload.php';
 use Goblin\Cli\BranchCheckCommand;
 use Goblin\Cli\CommitCheckCommand;
 use Goblin\Cli\DailyCommand;
+use Goblin\Cli\InstallCommand;
 use Goblin\Cli\IssueCommand;
 use Goblin\Cli\MrCommand;
 use Goblin\Cli\ParsedArgv;
@@ -23,6 +24,17 @@ use Goblin\Http\TokenHttp;
 use Goblin\Output\Console;
 
 $args = (new ParsedArgv($argv))->arguments();
+
+if ($args->command() === 'install') {
+    try {
+        $code = (new InstallCommand(new Console()))->run($args);
+    } catch (GoblinException $e) {
+        fwrite(STDERR, $e->getMessage() . PHP_EOL);
+        $code = 1;
+    }
+    exit($code);
+}
+
 $configPath = dirname(__DIR__) . '/.goblin.php';
 
 try {
