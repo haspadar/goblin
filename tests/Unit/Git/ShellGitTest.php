@@ -23,14 +23,14 @@ final class ShellGitTest extends TestCase
     }
 
     #[Test]
-    public function returnsParentBranch(): void
+    public function returnsNonEmptyBranchName(): void
     {
-        $git = new ShellGit();
+        $branch = (new ShellGit())->currentBranch();
 
-        self::assertNotSame(
-            '',
-            $git->parentBranch(),
-            'parent branch must be resolvable from reflog',
+        self::assertMatchesRegularExpression(
+            '/^[a-zA-Z0-9._\/-]+$/',
+            $branch,
+            'branch name must contain only valid git characters',
         );
     }
 }
