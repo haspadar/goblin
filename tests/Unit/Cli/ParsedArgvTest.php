@@ -68,4 +68,16 @@ final class ParsedArgvTest extends TestCase
             'missing command must yield empty string',
         );
     }
+
+    #[Test]
+    public function treatsTokensAfterTerminatorAsPositionals(): void
+    {
+        $args = (new ParsedArgv(['bin/goblin', 'issue', '--', '--raw']))->arguments();
+
+        self::assertSame(
+            '--raw',
+            $args->positional(0),
+            'tokens after -- must become positionals',
+        );
+    }
 }

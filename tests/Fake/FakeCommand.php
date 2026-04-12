@@ -6,6 +6,7 @@ namespace Goblin\Tests\Fake;
 
 use Goblin\Cli\Arguments;
 use Goblin\Cli\Command;
+use LogicException;
 use Override;
 
 /**
@@ -27,7 +28,10 @@ final class FakeCommand implements Command
 
     public function lastArgs(): Arguments
     {
-        /** @phpstan-var Arguments */
+        if ($this->lastArgs === null) {
+            throw new LogicException('lastArgs() called before run()');
+        }
+
         return $this->lastArgs;
     }
 }

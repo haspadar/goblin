@@ -27,8 +27,16 @@ final readonly class ParsedArgv
         $options = [];
         $positionals = [];
 
+        $parsingOptions = true;
+
         foreach (array_slice($this->argv, 2) as $arg) {
-            if (str_starts_with($arg, '--')) {
+            if ($parsingOptions && $arg === '--') {
+                $parsingOptions = false;
+
+                continue;
+            }
+
+            if ($parsingOptions && str_starts_with($arg, '--')) {
                 $parts = explode('=', substr($arg, 2), 2);
                 $options[$parts[0]] = $parts[1] ?? true;
             } else {
