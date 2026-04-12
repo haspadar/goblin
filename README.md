@@ -15,7 +15,7 @@ CLI tool for Jira and GitLab workflow automation.
 - Validate branch names against Jira Fix Versions
 - Validate commit messages against branch issue keys
 - Generate daily activity reports from Jira
-- Create Jira issues (bug, tech) with pre-filled fields
+- Create GitLab merge requests with draft/ready toggling
 - Run tests inside Docker containers
 - Git hooks for automated checks
 
@@ -34,15 +34,30 @@ cp .goblin.example.php .goblin.php   # edit with your credentials
 ## Usage
 
 ```bash
+# Jira
 php bin/goblin issue PROJ-1234              # show issue details
 php bin/goblin issue PROJ-1234 description  # plain-text description
-php bin/goblin issue create --type=bug --summary="Login page returns 500"
-php bin/goblin daily                       # daily activity report
-php bin/goblin branch-check                # validate current branch
-php bin/goblin commit-check                # validate commit message
-php bin/goblin test                        # run tests in Docker
-php bin/goblin test --parallel             # run tests in parallel
-php bin/goblin install                     # install git hooks
+php bin/goblin issue PROJ-1234 raw          # raw JSON payload
+php bin/goblin issue 1234                   # short key (project from branch)
+php bin/goblin daily                        # daily activity report
+
+# Git validation
+php bin/goblin branch-check                 # validate current branch
+php bin/goblin commit-check .git/COMMIT_EDITMSG  # validate commit message
+
+# GitLab merge requests
+php bin/goblin mr create --source=feat --target=main --title="Add feature"
+php bin/goblin mr view 42                   # view MR by IID
+php bin/goblin mr list --state=opened       # list merge requests
+php bin/goblin mr update 42 --draft         # mark as draft
+php bin/goblin mr update 42 --ready         # mark as ready
+
+# Docker
+php bin/goblin test                         # run tests in Docker
+php bin/goblin test --parallel              # run tests in parallel
+
+# Setup
+php bin/goblin install                      # install git hooks
 ```
 
 ## Quality

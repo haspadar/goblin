@@ -7,6 +7,7 @@ namespace Goblin\Tests\Unit\Cli;
 use Goblin\Cli\Arguments;
 use Goblin\Cli\IssueCommand;
 use Goblin\Tests\Fake\FakeConfig;
+use Goblin\Tests\Fake\FakeGit;
 use Goblin\Tests\Fake\FakeHttp;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +19,8 @@ final class IssueCommandTest extends TestCase
     {
         $cmd = new IssueCommand(
             $this->http('PROJ-42'),
-            new FakeConfig([]),
+            new FakeGit('PROJ-42-fix-login'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -54,7 +56,8 @@ final class IssueCommandTest extends TestCase
                 ],
                 'GET /rest/api/3/field' => [],
             ]),
-            new FakeConfig([]),
+            new FakeGit('PROJ-42-fix-login'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -79,7 +82,8 @@ final class IssueCommandTest extends TestCase
                 ],
                 'GET /rest/api/3/field' => [],
             ]),
-            new FakeConfig([]),
+            new FakeGit('PROJ-42-fix-login'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -104,7 +108,8 @@ final class IssueCommandTest extends TestCase
                 ],
                 'GET /rest/api/3/field' => [],
             ]),
-            new FakeConfig(['project' => 'PROJ']),
+            new FakeGit('PROJ-99-numeric-test'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -115,6 +120,32 @@ final class IssueCommandTest extends TestCase
             'PROJ-99',
             $output,
             'numeric key must be resolved with project prefix',
+        );
+    }
+
+    #[Test]
+    public function worksOnBranchWithoutProjectPrefix(): void
+    {
+        $cmd = new IssueCommand(
+            new FakeHttp([
+                'GET /rest/api/3/issue/PROJ-10' => [
+                    'key' => 'PROJ-10',
+                    'fields' => ['summary' => 'No prefix branch'],
+                ],
+                'GET /rest/api/3/field' => [],
+            ]),
+            new FakeGit('dev'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
+        );
+
+        ob_start();
+        $code = $cmd->run(new Arguments('issue', [], ['PROJ-10', 'raw']));
+        ob_end_clean();
+
+        self::assertSame(
+            0,
+            $code,
+            'must work with full key when branch has no project prefix',
         );
     }
 
