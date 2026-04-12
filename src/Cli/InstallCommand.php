@@ -33,7 +33,10 @@ final readonly class InstallCommand implements Command
                 continue;
             }
 
-            file_put_contents($path, $content);
+            if (file_put_contents($path, $content) === false) {
+                throw new GoblinException("Failed to write hook: {$name}");
+            }
+
             chmod($path, 0o755);
             $this->output->success("Installed {$name}");
         }
@@ -79,7 +82,7 @@ final readonly class InstallCommand implements Command
                 'set -e',
                 'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0',
                 "{$goblin} branch-check",
-                "{$goblin} commit-check",
+                "{$goblin} commit-check \"\$1\"",
                 '',
             ]),
             'pre-push' => implode("\n", [

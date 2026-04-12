@@ -24,6 +24,17 @@ use Goblin\Http\TokenHttp;
 use Goblin\Output\Console;
 
 $args = (new ParsedArgv($argv))->arguments();
+
+if ($args->command() === 'install') {
+    try {
+        $code = (new InstallCommand(new Console()))->run($args);
+    } catch (GoblinException $e) {
+        fwrite(STDERR, $e->getMessage() . PHP_EOL);
+        $code = 1;
+    }
+    exit($code);
+}
+
 $configPath = dirname(__DIR__) . '/.goblin.php';
 
 try {
@@ -40,7 +51,6 @@ try {
         'daily' => new DailyCommand($http, $config),
         'branch-check' => new BranchCheckCommand($git, $http, $config),
         'commit-check' => new CommitCheckCommand($config),
-        'install' => new InstallCommand(new Console()),
     ];
 
     if ($config->has('container')) {
