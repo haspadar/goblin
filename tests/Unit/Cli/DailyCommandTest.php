@@ -32,6 +32,47 @@ final class DailyCommandTest extends TestCase
         );
     }
 
+    #[Test]
+    public function filtersReportByProject(): void
+    {
+        $prefix = 'project = "TEAM" AND ';
+        $responses = [];
+
+        $lastJql = $prefix . 'status CHANGED BY currentUser() '
+            . 'AFTER startOfDay(-1d) BEFORE startOfDay()';
+        $responses[$this->searchUrl($lastJql)] = [
+            'issues' => [['key' => 'TEAM-5']],
+        ];
+
+        $inProgressJql = $prefix
+            . 'assignee = currentUser() AND status = "In Progress"';
+        $responses[$this->searchUrl($inProgressJql)] = ['issues' => []];
+
+        $queueJql = $prefix . 'sprint in openSprints() '
+            . 'AND assignee = currentUser() '
+            . 'AND status != Backlog '
+            . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)';
+        $responses[$this->searchUrl($queueJql)] = ['issues' => []];
+
+        $cmd = new DailyCommand(
+            new FakeHttp($responses),
+            new FakeConfig([
+                'jira-url' => 'https://test.atlassian.net',
+                'project' => 'TEAM',
+            ]),
+        );
+
+        ob_start();
+        $cmd->run(new Arguments('daily', [], []));
+        $output = (string) ob_get_clean();
+
+        self::assertStringContainsString(
+            'TEAM-5',
+            $output,
+            'daily command must filter by project from config',
+        );
+    }
+
     private function httpWithActivity(): FakeHttp
     {
         $responses = [];
