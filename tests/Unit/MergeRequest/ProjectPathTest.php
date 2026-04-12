@@ -57,6 +57,6 @@ final class ProjectPathTest extends TestCase
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('Cannot extract project path');
 
-        (new ProjectPath('ftp://invalid/remote'))->value();
+        (new ProjectPath('/local/path/not/a/remote'))->value();
     }
 }
