@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Cli;
 
 use Goblin\Config\Config;
+use Goblin\Git\Git;
 use Goblin\GoblinException;
 use Goblin\Http\Http;
 use Goblin\Issue\DescriptionFields;
@@ -19,9 +20,9 @@ use Override;
 final readonly class IssueCommand implements Command
 {
     /**
-     * Stores HTTP client and configuration.
+     * Stores HTTP client, git state, and configuration.
      */
-    public function __construct(private Http $http, private Config $config) {}
+    public function __construct(private Http $http, private Git $git, private Config $config) {}
 
     #[Override]
     public function run(Arguments $args): int
@@ -46,15 +47,21 @@ final readonly class IssueCommand implements Command
     }
 
     /**
-     * Returns project prefix from config.
+     * Extracts project prefix from current branch via project-regex.
      *
      * @throws GoblinException
      */
     private function project(): string
     {
-        return $this->config->has('project')
-            ? $this->config->value('project')
-            : '';
+        /** @var non-empty-string $regex */
+        $regex = $this->config->value('project-regex');
+        $branch = $this->git->currentBranch();
+
+        if (preg_match($regex, $branch, $matches) === 1) {
+            return $matches[1];
+        }
+
+        return '';
     }
 
     /**

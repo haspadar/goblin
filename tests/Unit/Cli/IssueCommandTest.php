@@ -7,6 +7,7 @@ namespace Goblin\Tests\Unit\Cli;
 use Goblin\Cli\Arguments;
 use Goblin\Cli\IssueCommand;
 use Goblin\Tests\Fake\FakeConfig;
+use Goblin\Tests\Fake\FakeGit;
 use Goblin\Tests\Fake\FakeHttp;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -18,7 +19,8 @@ final class IssueCommandTest extends TestCase
     {
         $cmd = new IssueCommand(
             $this->http('PROJ-42'),
-            new FakeConfig([]),
+            new FakeGit('PROJ-42-fix-login'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -54,7 +56,8 @@ final class IssueCommandTest extends TestCase
                 ],
                 'GET /rest/api/3/field' => [],
             ]),
-            new FakeConfig([]),
+            new FakeGit('PROJ-42-fix-login'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -79,7 +82,8 @@ final class IssueCommandTest extends TestCase
                 ],
                 'GET /rest/api/3/field' => [],
             ]),
-            new FakeConfig([]),
+            new FakeGit('PROJ-42-fix-login'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
@@ -104,7 +108,8 @@ final class IssueCommandTest extends TestCase
                 ],
                 'GET /rest/api/3/field' => [],
             ]),
-            new FakeConfig(['project' => 'PROJ']),
+            new FakeGit('PROJ-99-numeric-test'),
+            new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']),
         );
 
         ob_start();
