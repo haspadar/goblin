@@ -39,6 +39,7 @@ final class CommitCheckCommandTest extends TestCase
         );
 
         $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('differs from commit message');
 
         $cmd->run(new Arguments(
             'commit-check',

@@ -10,6 +10,7 @@ use Goblin\Http\Http;
 use Goblin\Issue\DescriptionFields;
 use Goblin\Issue\IssueKey;
 use Goblin\Issue\RemoteIssue;
+use JsonException;
 use Override;
 
 /**
@@ -60,14 +61,17 @@ final readonly class IssueCommand implements Command
      * Encodes array as pretty JSON.
      *
      * @param array<string, mixed> $data
+     * @throws GoblinException
      */
     private function json(array $data): string
     {
-        $encoded = json_encode(
-            $data,
-            JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES,
-        );
-
-        return ($encoded === false ? '{}' : $encoded) . PHP_EOL;
+        try {
+            return json_encode(
+                $data,
+                JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_THROW_ON_ERROR,
+            ) . PHP_EOL;
+        } catch (JsonException $e) {
+            throw new GoblinException("Failed to encode JSON: {$e->getMessage()}");
+        }
     }
 }

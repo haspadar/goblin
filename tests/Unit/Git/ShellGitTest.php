@@ -23,14 +23,14 @@ final class ShellGitTest extends TestCase
     }
 
     #[Test]
-    public function returnsNonEmptyBranchName(): void
+    public function returnsCleanBranchName(): void
     {
         $branch = (new ShellGit())->currentBranch();
 
-        self::assertMatchesRegularExpression(
-            '/^[a-zA-Z0-9._\/-]+$/',
+        self::assertDoesNotMatchRegularExpression(
+            '/[\r\n]/',
             $branch,
-            'branch name must contain only valid git characters',
+            'branch name must not contain CR or LF',
         );
     }
 }

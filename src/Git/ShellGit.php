@@ -31,12 +31,13 @@ final readonly class ShellGit implements Git
         $reflog = $this->exec('git reflog --date=iso');
         $pattern = '/checkout: moving from ([^ ]+) to '
             . preg_quote($branch, '/') . '$/m';
+        $count = preg_match_all($pattern, $reflog, $m);
 
-        if (preg_match($pattern, $reflog, $m) !== 1) {
+        if ($count === 0 || $count === false) {
             throw new GoblinException('Failed to determine parent branch');
         }
 
-        return $m[1];
+        return $m[1][$count - 1];
     }
 
     /**

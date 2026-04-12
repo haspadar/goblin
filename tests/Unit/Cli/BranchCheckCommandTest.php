@@ -40,17 +40,15 @@ final class BranchCheckCommandTest extends TestCase
         $cmd = new BranchCheckCommand(
             new FakeGit('PROJ-123-feature', 'dev'),
             new FakeHttp([
-                'GET /rest/api/3/issue/PROJ-123?fields=fixVersions' => [
+                'GET /rest/api/3/issue/PROJ-123' => [
                     'fields' => [
                         'fixVersions' => [
-                            ['name' => 'Release 2.0', 'released' => false, 'archived' => false],
+                            ['name' => 'PROJ 2.0.0'],
                         ],
                     ],
                 ],
-                'GET /rest/api/2/project/PROJ/version?status=unreleased&orderBy=-sequence&maxResults=100' => [
-                    'values' => [
-                        ['name' => 'Release 2.0', 'released' => false, 'archived' => false],
-                    ],
+                'GET /rest/api/3/project/PROJ/version?status=unreleased&orderBy=name' => [
+                    ['name' => 'PROJ 2.0.0'],
                 ],
             ]),
             new FakeConfig([
@@ -60,6 +58,7 @@ final class BranchCheckCommandTest extends TestCase
         );
 
         $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('requires base');
 
         $cmd->run(new Arguments('branch-check', [], []));
     }
