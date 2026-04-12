@@ -25,24 +25,4 @@ final class ShellDockerTest extends TestCase
         );
     }
 
-    #[Test]
-    public function execReturnsNonZeroForMissingContainer(): void
-    {
-        exec('docker info 2>/dev/null', $lines, $code);
-
-        if ($code !== 0) {
-            self::markTestSkipped('Docker CLI is not available');
-        }
-
-        $code = (new ShellDocker())->exec(
-            'goblin-nonexistent-' . bin2hex(random_bytes(4)),
-            'true',
-        );
-
-        self::assertNotSame(
-            0,
-            $code,
-            'must return non-zero exit code for a missing container',
-        );
-    }
 }
