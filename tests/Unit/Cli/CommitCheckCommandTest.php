@@ -1,0 +1,49 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Goblin\Tests\Unit\Cli;
+
+use Goblin\Cli\Arguments;
+use Goblin\Cli\CommitCheckCommand;
+use Goblin\GoblinException;
+use Goblin\Tests\Fake\FakeConfig;
+use PHPUnit\Framework\Attributes\Test;
+use PHPUnit\Framework\TestCase;
+
+final class CommitCheckCommandTest extends TestCase
+{
+    #[Test]
+    public function returnsZeroForMatchingKeys(): void
+    {
+        $cmd = new CommitCheckCommand(
+            new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+        );
+
+        self::assertSame(
+            0,
+            $cmd->run(new Arguments(
+                'commit-check',
+                [],
+                ['PROJ-42-feature', 'PROJ-42 Fix login bug'],
+            )),
+            'matching keys must pass validation',
+        );
+    }
+
+    #[Test]
+    public function throwsForMismatchedKeys(): void
+    {
+        $cmd = new CommitCheckCommand(
+            new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+        );
+
+        $this->expectException(GoblinException::class);
+
+        $cmd->run(new Arguments(
+            'commit-check',
+            [],
+            ['PROJ-42-feature', 'OTHER-99 Wrong key'],
+        ));
+    }
+}
