@@ -8,4 +8,5 @@ return [
     'protected-branches' => ['main', 'dev', 'stage', 'beta', 'master'],
     'gitlab-url' => 'https://gitlab.example.com',
     'gitlab-token' => '...',
+    'container' => 'your-app',
 ];

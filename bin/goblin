@@ -12,12 +12,15 @@ use Goblin\Cli\IssueCommand;
 use Goblin\Cli\MrCommand;
 use Goblin\Cli\ParsedArgv;
 use Goblin\Cli\RoutedCommand;
+use Goblin\Cli\TestCommand;
 use Goblin\Config\ConfigFile;
 use Goblin\Config\FileConfig;
+use Goblin\Docker\ShellDocker;
 use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
 use Goblin\Http\TokenHttp;
+use Goblin\Output\Console;
 
 $args = (new ParsedArgv($argv))->arguments();
 $configPath = dirname(__DIR__) . '/.goblin.php';
@@ -37,6 +40,10 @@ try {
         'branch-check' => new BranchCheckCommand($git, $http, $config),
         'commit-check' => new CommitCheckCommand($config),
     ];
+
+    if ($config->has('container')) {
+        $commands['test'] = new TestCommand(new ShellDocker(), $config, new Console());
+    }
 
     if ($config->has('gitlab-url') && $config->has('gitlab-token')) {
         $commands['mr'] = new MrCommand(
