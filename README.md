@@ -16,6 +16,7 @@ CLI tool for Jira and GitLab workflow automation.
 - Validate commit messages against branch issue keys
 - Generate daily activity reports from Jira
 - Create Jira issues (bug, tech) with pre-filled fields
+- Run tests inside Docker containers
 - Git hooks for automated checks
 
 ## Requirements
@@ -39,6 +40,8 @@ php bin/goblin issue create --type=bug --summary="Login page returns 500"
 php bin/goblin daily                       # daily activity report
 php bin/goblin branch-check                # validate current branch
 php bin/goblin commit-check                # validate commit message
+php bin/goblin test                        # run tests in Docker
+php bin/goblin test --parallel             # run tests in parallel
 php bin/goblin install                     # install git hooks
 ```
 
