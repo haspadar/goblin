@@ -26,4 +26,11 @@ interface Git
      * @throws GoblinException
      */
     public function parentBranch(): string;
+
+    /**
+     * Returns the remote URL for origin.
+     *
+     * @throws GoblinException
+     */
+    public function remote(): string;
 }

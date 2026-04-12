@@ -9,6 +9,7 @@ use Goblin\Cli\BranchCheckCommand;
 use Goblin\Cli\CommitCheckCommand;
 use Goblin\Cli\DailyCommand;
 use Goblin\Cli\IssueCommand;
+use Goblin\Cli\MrCommand;
 use Goblin\Cli\ParsedArgv;
 use Goblin\Cli\RoutedCommand;
 use Goblin\Config\ConfigFile;
@@ -16,6 +17,7 @@ use Goblin\Config\FileConfig;
 use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
+use Goblin\Http\TokenHttp;
 
 $args = (new ParsedArgv($argv))->arguments();
 $configPath = dirname(__DIR__) . '/.goblin.php';
@@ -28,12 +30,26 @@ try {
         $config->value('jira-token'),
     );
 
-    $code = (new RoutedCommand([
+    $git = new ShellGit();
+    $commands = [
         'issue' => new IssueCommand($http, $config),
         'daily' => new DailyCommand($http, $config),
-        'branch-check' => new BranchCheckCommand(new ShellGit(), $http, $config),
+        'branch-check' => new BranchCheckCommand($git, $http, $config),
         'commit-check' => new CommitCheckCommand($config),
-    ]))->run($args);
+    ];
+
+    if ($config->has('gitlab-url') && $config->has('gitlab-token')) {
+        $commands['mr'] = new MrCommand(
+            $git,
+            new TokenHttp(
+                $config->value('gitlab-url') . '/api/v4',
+                'PRIVATE-TOKEN',
+                $config->value('gitlab-token'),
+            ),
+        );
+    }
+
+    $code = (new RoutedCommand($commands))->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);
     $code = 1;

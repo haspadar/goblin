@@ -40,6 +40,18 @@ final readonly class ShellGit implements Git
         return $m[1][$count - 1];
     }
 
+    #[Override]
+    public function remote(): string
+    {
+        $remote = trim($this->exec('git remote get-url origin'));
+
+        if ($remote === '') {
+            throw new GoblinException('Failed to determine remote URL');
+        }
+
+        return $remote;
+    }
+
     /**
      * Executes a shell command and returns its output.
      *
