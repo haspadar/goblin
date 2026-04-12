@@ -13,6 +13,10 @@ use Override;
  */
 final readonly class InstallCommand implements Command
 {
+    private const string SHEBANG = '#!/bin/sh';
+
+    private const string ROOT_LINE = 'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0';
+
     /**
      * Stores output channel.
      */
@@ -78,23 +82,23 @@ final readonly class InstallCommand implements Command
 
         return [
             'commit-msg' => implode("\n", [
-                '#!/bin/sh',
+                self::SHEBANG,
                 'set -e',
-                'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0',
+                self::ROOT_LINE,
                 "{$goblin} branch-check",
                 "{$goblin} commit-check \"\$1\"",
                 '',
             ]),
             'pre-push' => implode("\n", [
-                '#!/bin/sh',
-                'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0',
+                self::SHEBANG,
+                self::ROOT_LINE,
                 "exec {$goblin} test --parallel",
                 '',
             ]),
             'post-checkout' => implode("\n", [
-                '#!/bin/sh',
+                self::SHEBANG,
                 '[ "$3" != "1" ] && exit 0',
-                'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0',
+                self::ROOT_LINE,
                 "exec {$goblin} branch-check",
                 '',
             ]),
