@@ -70,6 +70,30 @@ final class ParsedArgvTest extends TestCase
     }
 
     #[Test]
+    public function preservesEqualsSignInOptionValue(): void
+    {
+        $args = (new ParsedArgv(['bin/goblin', 'mr', '--query=a=b']))->arguments();
+
+        self::assertSame(
+            'a=b',
+            $args->option('query'),
+            'equals inside value must not split further',
+        );
+    }
+
+    #[Test]
+    public function bareFlagOptionReturnsEmptyString(): void
+    {
+        $args = (new ParsedArgv(['bin/goblin', 'mr', '--draft']))->arguments();
+
+        self::assertSame(
+            '',
+            $args->option('draft'),
+            'bare flag via option() must return empty string',
+        );
+    }
+
+    #[Test]
     public function treatsTokensAfterTerminatorAsPositionals(): void
     {
         $args = (new ParsedArgv(['bin/goblin', 'issue', '--', '--raw']))->arguments();
