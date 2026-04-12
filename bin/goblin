@@ -18,8 +18,6 @@ use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
 use Goblin\Http\TokenHttp;
-use Goblin\MergeRequest\GitLabMergeRequest;
-use Goblin\MergeRequest\ProjectPath;
 
 $args = (new ParsedArgv($argv))->arguments();
 $configPath = dirname(__DIR__) . '/.goblin.php';
@@ -44,12 +42,7 @@ try {
         'daily' => new DailyCommand($http, $config),
         'branch-check' => new BranchCheckCommand($git, $http, $config),
         'commit-check' => new CommitCheckCommand($config),
-        'mr' => new MrCommand(
-            new GitLabMergeRequest(
-                $gitlab,
-                (new ProjectPath($git->remote()))->value(),
-            ),
-        ),
+        'mr' => new MrCommand($git, $gitlab),
     ]))->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);

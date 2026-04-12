@@ -4,9 +4,12 @@ declare(strict_types=1);
 
 namespace Goblin\Cli;
 
+use Goblin\Git\Git;
 use Goblin\GoblinException;
+use Goblin\Http\Http;
 use Goblin\MergeRequest\DraftTitle;
 use Goblin\MergeRequest\GitLabMergeRequest;
+use Goblin\MergeRequest\ProjectPath;
 use JsonException;
 use Override;
 
@@ -16,25 +19,29 @@ use Override;
 final readonly class MrCommand implements Command
 {
     /**
-     * Stores GitLab merge request client.
+     * Stores git state and GitLab HTTP client.
      */
-    public function __construct(private GitLabMergeRequest $mr) {}
+    public function __construct(private Git $git, private Http $http) {}
 
     #[Override]
     public function run(Arguments $args): int
     {
+        $mr = new GitLabMergeRequest(
+            $this->http,
+            (new ProjectPath($this->git->remote()))->value(),
+        );
         $sub = $args->positional(0);
 
         $data = match ($sub) {
-            'create' => $this->created($args),
-            'view' => $this->mr->view((int) $args->positional(1)),
-            'list' => $this->mr->list([
+            'create' => $this->created($mr, $args),
+            'view' => $mr->view($this->iid($args)),
+            'list' => $mr->list([
                 'state' => $args->option('state'),
                 'source_branch' => $args->option('source'),
                 'target_branch' => $args->option('target'),
                 'search' => $args->option('search'),
             ]),
-            'update' => $this->updated($args),
+            'update' => $this->updated($mr, $args),
             default => throw new GoblinException("Unknown mr subcommand: {$sub}"),
         };
 
@@ -56,11 +63,11 @@ final readonly class MrCommand implements Command
      * @throws GoblinException
      * @return array<string, mixed>
      */
-    private function created(Arguments $args): array
+    private function created(GitLabMergeRequest $mr, Arguments $args): array
     {
         $title = $args->option('title');
 
-        return $this->mr->create([
+        return $mr->create([
             'source_branch' => $args->option('source'),
             'target_branch' => $args->option('target'),
             'title' => $args->flag('draft')
@@ -76,9 +83,9 @@ final readonly class MrCommand implements Command
      * @throws GoblinException
      * @return array<string, mixed>
      */
-    private function updated(Arguments $args): array
+    private function updated(GitLabMergeRequest $mr, Arguments $args): array
     {
-        $iid = (int) $args->positional(1);
+        $iid = $this->iid($args);
         $changes = array_filter(
             [
                 'title' => $args->option('title'),
@@ -89,30 +96,35 @@ final readonly class MrCommand implements Command
         );
 
         if ($args->flag('draft') || $args->flag('ready')) {
-            $title = $this->titleForDraft($args->option('title'), $iid);
+            $explicit = $args->option('title');
+            $viewed = $mr->view($iid);
+            $current = array_key_exists('title', $viewed) && is_string($viewed['title'])
+                ? $viewed['title']
+                : '';
+            $title = $explicit !== ''
+                ? $explicit
+                : $current;
             $changes['title'] = $args->flag('draft')
                 ? (new DraftTitle($title))->drafted()
                 : (new DraftTitle($title))->ready();
         }
 
-        return $this->mr->update($iid, $changes);
+        return $mr->update($iid, $changes);
     }
 
     /**
-     * Returns explicit title or fetches current from API.
+     * Extracts and validates IID from positional argument.
      *
      * @throws GoblinException
      */
-    private function titleForDraft(string $explicit, int $iid): string
+    private function iid(Arguments $args): int
     {
-        if ($explicit !== '') {
-            return $explicit;
+        $raw = $args->positional(1);
+
+        if ($raw === '' || !ctype_digit($raw)) {
+            throw new GoblinException('Merge request IID is required');
         }
 
-        $viewed = $this->mr->view($iid);
-
-        return array_key_exists('title', $viewed) && is_string($viewed['title'])
-            ? $viewed['title']
-            : '';
+        return (int) $raw;
     }
 }

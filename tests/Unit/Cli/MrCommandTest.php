@@ -7,7 +7,7 @@ namespace Goblin\Tests\Unit\Cli;
 use Goblin\Cli\Arguments;
 use Goblin\Cli\MrCommand;
 use Goblin\GoblinException;
-use Goblin\MergeRequest\GitLabMergeRequest;
+use Goblin\Tests\Fake\FakeGit;
 use Goblin\Tests\Fake\FakeHttp;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -24,7 +24,10 @@ final class MrCommandTest extends TestCase
             ],
         ]);
 
-        $cmd = new MrCommand(new GitLabMergeRequest($http, 'team/app'));
+        $cmd = new MrCommand(
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:team/app.git'),
+            $http,
+        );
 
         ob_start();
         $cmd->run(new Arguments('mr', [
@@ -47,16 +50,14 @@ final class MrCommandTest extends TestCase
     public function viewsExistingMergeRequest(): void
     {
         $cmd = new MrCommand(
-            new GitLabMergeRequest(
-                new FakeHttp([
-                    'GET /projects/ops%2Fdeploy/merge_requests/7' => [
-                        'iid' => 7,
-                        'state' => 'opened',
-                        'title' => 'Canary rollout',
-                    ],
-                ]),
-                'ops/deploy',
-            ),
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:ops/deploy.git'),
+            new FakeHttp([
+                'GET /projects/ops%2Fdeploy/merge_requests/7' => [
+                    'iid' => 7,
+                    'state' => 'opened',
+                    'title' => 'Canary rollout',
+                ],
+            ]),
         );
 
         ob_start();
@@ -74,15 +75,13 @@ final class MrCommandTest extends TestCase
     public function listsWithStateFilter(): void
     {
         $cmd = new MrCommand(
-            new GitLabMergeRequest(
-                new FakeHttp([
-                    'GET /projects/web%2Fsite/merge_requests?state=merged' => [
-                        ['iid' => 3],
-                        ['iid' => 9],
-                    ],
-                ]),
-                'web/site',
-            ),
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:web/site.git'),
+            new FakeHttp([
+                'GET /projects/web%2Fsite/merge_requests?state=merged' => [
+                    ['iid' => 3],
+                    ['iid' => 9],
+                ],
+            ]),
         );
 
         ob_start();
@@ -110,7 +109,10 @@ final class MrCommandTest extends TestCase
             ],
         ]);
 
-        $cmd = new MrCommand(new GitLabMergeRequest($http, 'infra/ci'));
+        $cmd = new MrCommand(
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:infra/ci.git'),
+            $http,
+        );
 
         ob_start();
         $cmd->run(new Arguments('mr', ['ready' => true], ['update', '4']));
@@ -127,12 +129,27 @@ final class MrCommandTest extends TestCase
     public function throwsForUnknownSubcommand(): void
     {
         $cmd = new MrCommand(
-            new GitLabMergeRequest(new FakeHttp([]), 'any/project'),
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:any/project.git'),
+            new FakeHttp([]),
         );
 
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('Unknown mr subcommand');
 
         $cmd->run(new Arguments('mr', [], ['merge']));
+    }
+
+    #[Test]
+    public function throwsForMissingIid(): void
+    {
+        $cmd = new MrCommand(
+            new FakeGit('feature', 'main', 'git@gitlab.example.com:any/project.git'),
+            new FakeHttp([]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage('IID is required');
+
+        $cmd->run(new Arguments('mr', [], ['view']));
     }
 }
