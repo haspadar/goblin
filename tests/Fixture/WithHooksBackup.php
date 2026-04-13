@@ -24,6 +24,10 @@ final class WithHooksBackup
 
     /**
      * Backs up hooks, executes the callback, restores hooks.
+     *
+     * @template T
+     * @param \Closure(): T $callback
+     * @return T
      */
     public function run(\Closure $callback): mixed
     {
@@ -39,7 +43,11 @@ final class WithHooksBackup
 
     private function hooksDir(): string
     {
-        exec('git rev-parse --show-toplevel', $lines);
+        exec('git rev-parse --show-toplevel', $lines, $code);
+
+        if ($code !== 0 || $lines === []) {
+            throw new \RuntimeException('Not a git repository');
+        }
 
         return $lines[0] . '/.git/hooks';
     }
