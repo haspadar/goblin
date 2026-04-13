@@ -40,10 +40,7 @@ final readonly class InstallCommand implements Command
                 throw new GoblinException("Failed to write hook: {$hook->value}");
             }
 
-            if (!chmod($path, 0o755)) {
-                throw new GoblinException("Failed to make hook executable: {$hook->value}");
-            }
-
+            chmod($path, 0o755);
             $this->output->success("Installed {$hook->value}");
         }
 
