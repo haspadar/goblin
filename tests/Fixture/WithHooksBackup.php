@@ -1,0 +1,73 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Goblin\Tests\Fixture;
+
+/**
+ * Backs up git hooks, runs a closure, then restores originals.
+ */
+final class WithHooksBackup
+{
+    private const array HOOKS = ['commit-msg', 'pre-push', 'post-checkout'];
+
+    /**
+     * Backs up hooks, executes the callback, restores hooks.
+     */
+    public function run(\Closure $callback): void
+    {
+        $dir = $this->hooksDir();
+        $saved = $this->backup($dir);
+
+        try {
+            $callback();
+        } finally {
+            $this->restore($dir, $saved);
+        }
+    }
+
+    private function hooksDir(): string
+    {
+        exec('git rev-parse --show-toplevel', $lines);
+
+        return $lines[0] . '/.git/hooks';
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    private function backup(string $dir): array
+    {
+        $saved = [];
+
+        foreach (self::HOOKS as $hook) {
+            $path = $dir . '/' . $hook;
+
+            if (file_exists($path)) {
+                $saved[$hook] = (string) file_get_contents($path);
+                unlink($path);
+            }
+        }
+
+        return $saved;
+    }
+
+    /**
+     * @param array<string, string> $saved
+     */
+    private function restore(string $dir, array $saved): void
+    {
+        foreach (self::HOOKS as $hook) {
+            $path = $dir . '/' . $hook;
+
+            if (file_exists($path) && !array_key_exists($hook, $saved)) {
+                unlink($path);
+            }
+
+            if (array_key_exists($hook, $saved)) {
+                file_put_contents($path, $saved[$hook]);
+                chmod($path, 0o755);
+            }
+        }
+    }
+}

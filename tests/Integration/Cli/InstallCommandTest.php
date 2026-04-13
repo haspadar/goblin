@@ -7,6 +7,7 @@ namespace Goblin\Tests\Integration\Cli;
 use Goblin\Cli\Arguments;
 use Goblin\Cli\InstallCommand;
 use Goblin\Tests\Fake\FakeOutput;
+use Goblin\Tests\Fixture\WithHooksBackup;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -15,32 +16,31 @@ final class InstallCommandTest extends TestCase
     #[Test]
     public function installsThreeHooks(): void
     {
-        $backups = $this->backupHooks();
         $output = new FakeOutput();
 
-        (new InstallCommand($output))->run(new Arguments('install', [], []));
-        $this->restoreHooks($backups);
+        (new WithHooksBackup())->run(function () use ($output): void {
+            (new InstallCommand($output))->run(new Arguments('install', [], []));
+        });
 
-        self::assertCount(
-            3,
+        self::assertSame(
+            ['Installed commit-msg', 'Installed pre-push', 'Installed post-checkout'],
             $output->successes,
-            'must install commit-msg, pre-push, and post-checkout',
+            'must install all three hooks',
         );
     }
 
     #[Test]
     public function skipsExistingHooks(): void
     {
-        $backups = $this->backupHooks();
-
-        (new InstallCommand(new FakeOutput()))->run(new Arguments('install', [], []));
-
         $output = new FakeOutput();
-        (new InstallCommand($output))->run(new Arguments('install', [], []));
-        $this->restoreHooks($backups);
 
-        self::assertCount(
-            3,
+        (new WithHooksBackup())->run(function () use ($output): void {
+            (new InstallCommand(new FakeOutput()))->run(new Arguments('install', [], []));
+            (new InstallCommand($output))->run(new Arguments('install', [], []));
+        });
+
+        self::assertSame(
+            ['Skipped commit-msg (already exists)', 'Skipped pre-push (already exists)', 'Skipped post-checkout (already exists)'],
             $output->muted,
             'must skip all hooks when they already exist',
         );
@@ -49,60 +49,13 @@ final class InstallCommandTest extends TestCase
     #[Test]
     public function returnsZeroExitCode(): void
     {
-        $backups = $this->backupHooks();
+        $code = 1;
 
-        $code = (new InstallCommand(new FakeOutput()))
-            ->run(new Arguments('install', [], []));
-        $this->restoreHooks($backups);
+        (new WithHooksBackup())->run(function () use (&$code): void {
+            $code = (new InstallCommand(new FakeOutput()))
+                ->run(new Arguments('install', [], []));
+        });
 
         self::assertSame(0, $code, 'must return 0 on success');
-    }
-
-    /**
-     * @return array<string, string>
-     */
-    private function backupHooks(): array
-    {
-        $dir = $this->hooksDir();
-        $backups = [];
-
-        foreach (['commit-msg', 'pre-push', 'post-checkout'] as $hook) {
-            $path = $dir . '/' . $hook;
-
-            if (file_exists($path)) {
-                $backups[$hook] = (string) file_get_contents($path);
-                unlink($path);
-            }
-        }
-
-        return $backups;
-    }
-
-    /**
-     * @param array<string, string> $backups
-     */
-    private function restoreHooks(array $backups): void
-    {
-        $dir = $this->hooksDir();
-
-        foreach (['commit-msg', 'pre-push', 'post-checkout'] as $hook) {
-            $path = $dir . '/' . $hook;
-
-            if (file_exists($path) && !array_key_exists($hook, $backups)) {
-                unlink($path);
-            }
-
-            if (array_key_exists($hook, $backups)) {
-                file_put_contents($path, $backups[$hook]);
-                chmod($path, 0o755);
-            }
-        }
-    }
-
-    private function hooksDir(): string
-    {
-        exec('git rev-parse --show-toplevel', $lines);
-
-        return $lines[0] . '/.git/hooks';
     }
 }
