@@ -13,8 +13,10 @@ final readonly class DebugOutput implements Output
 {
     /**
      * Wraps an existing output with debug logging.
+     *
+     * @param resource $stderr
      */
-    public function __construct(private Output $origin) {}
+    public function __construct(private Output $origin, private mixed $stderr = STDERR) {}
 
     #[Override]
     public function info(string $text): void
@@ -50,7 +52,7 @@ final readonly class DebugOutput implements Output
     private function debug(string $level, string $text): void
     {
         fwrite(
-            STDERR,
+            $this->stderr,
             '[' . date('H:i:s') . "] [{$level}] {$text}" . PHP_EOL,
         );
     }

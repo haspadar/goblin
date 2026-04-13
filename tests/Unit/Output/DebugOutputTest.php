@@ -15,7 +15,7 @@ final class DebugOutputTest extends TestCase
     public function delegatesInfoToOrigin(): void
     {
         $fake = new FakeOutput();
-        $debug = new DebugOutput($fake);
+        $debug = new DebugOutput($fake, $this->nullStream());
 
         $debug->info('migration running');
 
@@ -30,7 +30,7 @@ final class DebugOutputTest extends TestCase
     public function delegatesSuccessToOrigin(): void
     {
         $fake = new FakeOutput();
-        $debug = new DebugOutput($fake);
+        $debug = new DebugOutput($fake, $this->nullStream());
 
         $debug->success('seeds planted');
 
@@ -45,7 +45,7 @@ final class DebugOutputTest extends TestCase
     public function delegatesErrorToOrigin(): void
     {
         $fake = new FakeOutput();
-        $debug = new DebugOutput($fake);
+        $debug = new DebugOutput($fake, $this->nullStream());
 
         $debug->error('connection refused');
 
@@ -60,7 +60,7 @@ final class DebugOutputTest extends TestCase
     public function delegatesMutedToOrigin(): void
     {
         $fake = new FakeOutput();
-        $debug = new DebugOutput($fake);
+        $debug = new DebugOutput($fake, $this->nullStream());
 
         $debug->muted('cache warmed');
 
@@ -69,5 +69,14 @@ final class DebugOutputTest extends TestCase
             $fake->muted[0] ?? '',
             'muted must be delegated to wrapped output',
         );
+    }
+
+    /**
+     * @return resource
+     */
+    private function nullStream(): mixed
+    {
+        /** @var resource */
+        return fopen('php://memory', 'w');
     }
 }
