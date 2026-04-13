@@ -6,6 +6,8 @@ namespace Goblin\Tests\Integration\Cli;
 
 use Goblin\Cli\Arguments;
 use Goblin\Cli\InstallCommand;
+use Goblin\Tests\Constraint\InstalledHooks;
+use Goblin\Tests\Constraint\SkippedHooks;
 use Goblin\Tests\Fake\FakeOutput;
 use Goblin\Tests\Fixture\WithHooksBackup;
 use PHPUnit\Framework\Attributes\Test;
@@ -19,14 +21,10 @@ final class InstallCommandTest extends TestCase
         $output = new FakeOutput();
 
         (new WithHooksBackup())->run(function () use ($output): void {
-            (new InstallCommand($output))->run(new Arguments('install', [], []));
+            (new InstallCommand($output))->run(new Arguments('', [], []));
         });
 
-        self::assertSame(
-            ['Installed commit-msg', 'Installed pre-push', 'Installed post-checkout'],
-            $output->successes,
-            'must install all three hooks',
-        );
+        self::assertThat($output, new InstalledHooks());
     }
 
     #[Test]
@@ -35,26 +33,20 @@ final class InstallCommandTest extends TestCase
         $output = new FakeOutput();
 
         (new WithHooksBackup())->run(function () use ($output): void {
-            (new InstallCommand(new FakeOutput()))->run(new Arguments('install', [], []));
-            (new InstallCommand($output))->run(new Arguments('install', [], []));
+            (new InstallCommand(new FakeOutput()))->run(new Arguments('', [], []));
+            (new InstallCommand($output))->run(new Arguments('', [], []));
         });
 
-        self::assertSame(
-            ['Skipped commit-msg (already exists)', 'Skipped pre-push (already exists)', 'Skipped post-checkout (already exists)'],
-            $output->muted,
-            'must skip all hooks when they already exist',
-        );
+        self::assertThat($output, new SkippedHooks());
     }
 
     #[Test]
     public function returnsZeroExitCode(): void
     {
-        $code = 1;
-
-        (new WithHooksBackup())->run(function () use (&$code): void {
-            $code = (new InstallCommand(new FakeOutput()))
-                ->run(new Arguments('install', [], []));
-        });
+        $code = (new WithHooksBackup())->run(
+            fn(): int => (new InstallCommand(new FakeOutput()))
+                ->run(new Arguments('', [], [])),
+        );
 
         self::assertSame(0, $code, 'must return 0 on success');
     }

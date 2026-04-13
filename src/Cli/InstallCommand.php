@@ -26,23 +26,22 @@ final readonly class InstallCommand implements Command
     public function run(Arguments $args): int
     {
         $hooksDir = $this->hooksDir();
-        $hooks = $this->hooks();
 
-        foreach ($hooks as $name => $content) {
-            $path = $hooksDir . '/' . $name;
+        foreach (InstallHook::cases() as $hook) {
+            $path = $hooksDir . '/' . $hook->value;
 
             if (file_exists($path)) {
-                $this->output->muted("Skipped {$name} (already exists)");
+                $this->output->muted("Skipped {$hook->value} (already exists)");
 
                 continue;
             }
 
-            if (file_put_contents($path, $content) === false) {
-                throw new GoblinException("Failed to write hook: {$name}");
+            if (file_put_contents($path, $this->script($hook)) === false) {
+                throw new GoblinException("Failed to write hook: {$hook->value}");
             }
 
             chmod($path, 0o755);
-            $this->output->success("Installed {$name}");
+            $this->output->success("Installed {$hook->value}");
         }
 
         return 0;
@@ -72,16 +71,14 @@ final readonly class InstallCommand implements Command
     }
 
     /**
-     * Returns hook scripts keyed by filename.
-     *
-     * @return array<string, string>
+     * Returns the shell script for a given hook.
      */
-    private function hooks(): array
+    private function script(InstallHook $hook): string
     {
         $goblin = 'php "$ROOT/bin/goblin"';
 
-        return [
-            'commit-msg' => implode("\n", [
+        return match ($hook) {
+            InstallHook::CommitMsg => implode("\n", [
                 self::SHEBANG,
                 'set -e',
                 self::ROOT_LINE,
@@ -89,19 +86,19 @@ final readonly class InstallCommand implements Command
                 "{$goblin} commit-check \"\$1\"",
                 '',
             ]),
-            'pre-push' => implode("\n", [
+            InstallHook::PrePush => implode("\n", [
                 self::SHEBANG,
                 self::ROOT_LINE,
                 "exec {$goblin} test --parallel",
                 '',
             ]),
-            'post-checkout' => implode("\n", [
+            InstallHook::PostCheckout => implode("\n", [
                 self::SHEBANG,
                 '[ "$3" != "1" ] && exit 0',
                 self::ROOT_LINE,
                 "exec {$goblin} branch-check",
                 '',
             ]),
-        ];
+        };
     }
 }

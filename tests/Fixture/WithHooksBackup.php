@@ -4,23 +4,39 @@ declare(strict_types=1);
 
 namespace Goblin\Tests\Fixture;
 
+use Goblin\Cli\InstallHook;
+use Goblin\GoblinException;
+
 /**
  * Backs up git hooks, runs a closure, then restores originals.
  */
 final class WithHooksBackup
 {
-    private const array HOOKS = ['commit-msg', 'pre-push', 'post-checkout'];
+    /** @var list<string> */
+    private readonly array $hooks;
+
+    public function __construct()
+    {
+        $this->hooks = array_map(
+            static fn(InstallHook $hook): string => $hook->value,
+            InstallHook::cases(),
+        );
+    }
 
     /**
      * Backs up hooks, executes the callback, restores hooks.
+     *
+     * @template T
+     * @param \Closure(): T $callback
+     * @return T
      */
-    public function run(\Closure $callback): void
+    public function run(\Closure $callback): mixed
     {
         $dir = $this->hooksDir();
         $saved = $this->backup($dir);
 
         try {
-            $callback();
+            return $callback();
         } finally {
             $this->restore($dir, $saved);
         }
@@ -28,7 +44,11 @@ final class WithHooksBackup
 
     private function hooksDir(): string
     {
-        exec('git rev-parse --show-toplevel', $lines);
+        exec('git rev-parse --show-toplevel', $lines, $code);
+
+        if ($code !== 0 || $lines === []) {
+            throw new GoblinException('Not a git repository');
+        }
 
         return $lines[0] . '/.git/hooks';
     }
@@ -40,7 +60,7 @@ final class WithHooksBackup
     {
         $saved = [];
 
-        foreach (self::HOOKS as $hook) {
+        foreach ($this->hooks as $hook) {
             $path = $dir . '/' . $hook;
 
             if (file_exists($path)) {
@@ -57,7 +77,7 @@ final class WithHooksBackup
      */
     private function restore(string $dir, array $saved): void
     {
-        foreach (self::HOOKS as $hook) {
+        foreach ($this->hooks as $hook) {
             $path = $dir . '/' . $hook;
 
             if (file_exists($path) && !array_key_exists($hook, $saved)) {
