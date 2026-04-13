@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goblin\Tests\Unit\Git;
+namespace Goblin\Tests\Integration\Git;
 
 use Goblin\Git\ShellGit;
 use PHPUnit\Framework\Attributes\Test;
