@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Goblin\Tests\Integration\Docker;
 
 use Goblin\Docker\ShellDocker;
+use Goblin\Tests\Fake\FakeOutput;
+use Goblin\Tests\Fixture\WithDocker;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -13,38 +15,28 @@ final class ShellDockerTest extends TestCase
     #[Test]
     public function returnsFalseForNonexistentContainer(): void
     {
-        exec('docker info 2>/dev/null', $lines, $code);
-
-        if ($code !== 0) {
-            self::markTestSkipped('Docker CLI is not available');
-        }
-
-        self::assertFalse(
-            (new ShellDocker())->isRunning('goblin-nonexistent-' . bin2hex(random_bytes(4))),
-            'must return false for a container that does not exist',
-        );
+        (new WithDocker())->run(function (): void {
+            self::assertFalse(
+                (new ShellDocker(new FakeOutput()))->isRunning('goblin-nonexistent-' . bin2hex(random_bytes(4))),
+                'must return false for a container that does not exist',
+            );
+        });
     }
 
     #[Test]
     public function execReturnsNonZeroForMissingContainer(): void
     {
-        exec('docker info 2>/dev/null', $lines, $code);
+        (new WithDocker())->run(function (): void {
+            $exitCode = (new ShellDocker(new FakeOutput()))->exec(
+                'goblin-nonexistent-' . bin2hex(random_bytes(4)),
+                'true',
+            );
 
-        if ($code !== 0) {
-            self::markTestSkipped('Docker CLI is not available');
-        }
-
-        ob_start();
-        $exitCode = (new ShellDocker())->exec(
-            'goblin-nonexistent-' . bin2hex(random_bytes(4)),
-            'true',
-        );
-        ob_end_clean();
-
-        self::assertNotSame(
-            0,
-            $exitCode,
-            'must return non-zero exit code for a missing container',
-        );
+            self::assertNotSame(
+                0,
+                $exitCode,
+                'must return non-zero exit code for a missing container',
+            );
+        });
     }
 }
