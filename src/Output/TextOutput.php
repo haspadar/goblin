@@ -7,9 +7,9 @@ namespace Goblin\Output;
 use Override;
 
 /**
- * ANSI-colored output to STDOUT and STDERR.
+ * ANSI-colored output for interactive terminals.
  */
-final readonly class Console implements Output
+final readonly class TextOutput implements Output
 {
     #[Override]
     public function info(string $text): void
