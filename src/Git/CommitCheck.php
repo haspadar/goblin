@@ -42,19 +42,19 @@ final readonly class CommitCheck
 
         if ($branchKey === '') {
             throw new GoblinException(
-                "Commit message contains {$messageKey}, but branch has no issue key",
+                "No task found in branch, but commit contains {$messageKey}",
             );
         }
 
         if ($messageKey === '') {
             throw new GoblinException(
-                "Branch contains {$branchKey}, but commit message has no issue key",
+                "Commit must start with {$branchKey}, but no task found in message",
             );
         }
 
         if ($branchKey !== $messageKey) {
             throw new GoblinException(
-                "Branch issue key ({$branchKey}) differs from commit message ({$messageKey})",
+                "Commit must start with {$branchKey}, got {$messageKey}",
             );
         }
     }

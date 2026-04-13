@@ -79,7 +79,7 @@ final class CommitCheckCommandTest extends TestCase
         $cmd->run(new Arguments('commit-check', [], ['BILL-22 Update invoice']));
 
         self::assertStringContainsString(
-            'differs from commit message',
+            'Commit must start with',
             $output->errors[0] ?? '',
             'must output error message on invalid commit',
         );

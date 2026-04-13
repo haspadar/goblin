@@ -59,7 +59,7 @@ final class CommitCheckTest extends TestCase
         $check = new CommitCheck('feature-login', 'CORE-77 add login page', self::REGEX);
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage('branch has no issue key');
+        $this->expectExceptionMessage('No task found in branch');
 
         $check->validate();
     }
@@ -70,7 +70,7 @@ final class CommitCheckTest extends TestCase
         $check = new CommitCheck('ACME-100-refactor', 'improve performance', self::REGEX);
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage('commit message has no issue key');
+        $this->expectExceptionMessage('no task found in message');
 
         $check->validate();
     }
@@ -81,7 +81,7 @@ final class CommitCheckTest extends TestCase
         $check = new CommitCheck('ACME-100-refactor', 'ACME-200 wrong task reference', self::REGEX);
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage('differs from commit message');
+        $this->expectExceptionMessage('Commit must start with');
 
         $check->validate();
     }
@@ -92,7 +92,7 @@ final class CommitCheckTest extends TestCase
         $check = new CommitCheck('SHOP-55-cart', 'WEB-55 update cart logic', self::REGEX);
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage('differs from commit message');
+        $this->expectExceptionMessage('Commit must start with');
 
         $check->validate();
     }
