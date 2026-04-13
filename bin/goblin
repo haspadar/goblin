@@ -70,7 +70,7 @@ try {
     ];
 
     if ($config->has('container')) {
-        $commands['test'] = new TestCommand(new ShellDocker(), $config, $output);
+        $commands['test'] = new TestCommand(new ShellDocker($output), $config, $output);
     }
 
     if ($config->has('gitlab-url') && $config->has('gitlab-token')) {
