@@ -40,7 +40,8 @@ php bin/goblin daily                        # daily activity report
 
 # Git validation
 php bin/goblin branch-check                 # validate current branch
-php bin/goblin commit-check .git/COMMIT_EDITMSG  # validate commit message
+php bin/goblin commit-check .git/COMMIT_EDITMSG  # validate from file
+php bin/goblin commit-check "PRJ-42 Fix auth"   # validate text directly
 
 # GitLab merge requests
 php bin/goblin mr create --source=PRJ-42-auth --target=main --title="PRJ-42 auth"

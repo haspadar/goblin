@@ -6,6 +6,8 @@ namespace Goblin\Cli;
 
 use Goblin\Config\Config;
 use Goblin\Git\CommitCheck;
+use Goblin\Git\CommitMessage;
+use Goblin\Git\Git;
 use Override;
 
 /**
@@ -14,9 +16,9 @@ use Override;
 final readonly class CommitCheckCommand implements Command
 {
     /**
-     * Stores configuration for project regex.
+     * Stores git and configuration.
      */
-    public function __construct(private Config $config) {}
+    public function __construct(private Git $git, private Config $config) {}
 
     #[Override]
     public function run(Arguments $args): int
@@ -25,8 +27,8 @@ final readonly class CommitCheckCommand implements Command
         $regex = $this->config->value('project-regex');
 
         (new CommitCheck(
-            $args->positional(0),
-            $args->positional(1),
+            $this->git->currentBranch(),
+            (new CommitMessage($args->positional(0)))->text(),
             $regex,
         ))->validate();
 
