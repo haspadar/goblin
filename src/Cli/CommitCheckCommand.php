@@ -29,8 +29,10 @@ final readonly class CommitCheckCommand implements Command
             /** @var non-empty-string $regex */
             $regex = $this->config->value('project-regex');
 
+            $branch = $args->option('branch');
+
             (new CommitCheck(
-                $this->git->currentBranch(),
+                $branch !== '' ? $branch : $this->git->currentBranch(),
                 (new CommitMessage($args->positional(0)))->text(),
                 $regex,
             ))->validate();

@@ -67,6 +67,26 @@ final class CommitCheckCommandTest extends TestCase
     }
 
     #[Test]
+    public function usesExplicitBranchOption(): void
+    {
+        $cmd = new CommitCheckCommand(
+            new FakeGit('main'),
+            new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+            new FakeOutput(),
+        );
+
+        self::assertSame(
+            0,
+            $cmd->run(new Arguments(
+                'commit-check',
+                ['branch' => 'PROJ-55-refactor'],
+                ['PROJ-55 Simplify auth flow'],
+            )),
+            'explicit --branch must override git branch',
+        );
+    }
+
+    #[Test]
     public function outputsErrorMessageOnFailure(): void
     {
         $output = new FakeOutput();
