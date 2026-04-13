@@ -21,13 +21,23 @@ use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
 use Goblin\Http\TokenHttp;
-use Goblin\Output\Console;
+use Goblin\Output\DebugOutput;
+use Goblin\Output\JsonOutput;
+use Goblin\Output\TextOutput;
 
 $args = (new ParsedArgv($argv))->arguments();
 
+$output = function_exists('posix_isatty') && posix_isatty(STDOUT)
+    ? new TextOutput()
+    : new JsonOutput();
+
+if ($args->flag('debug')) {
+    $output = new DebugOutput($output);
+}
+
 if ($args->command() === 'install') {
     try {
-        $code = (new InstallCommand(new Console()))->run($args);
+        $code = (new InstallCommand($output))->run($args);
     } catch (GoblinException $e) {
         fwrite(STDERR, $e->getMessage() . PHP_EOL);
         $code = 1;
@@ -54,7 +64,7 @@ try {
     ];
 
     if ($config->has('container')) {
-        $commands['test'] = new TestCommand(new ShellDocker(), $config, new Console());
+        $commands['test'] = new TestCommand(new ShellDocker(), $config, $output);
     }
 
     if ($config->has('gitlab-url') && $config->has('gitlab-token')) {
