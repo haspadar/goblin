@@ -27,7 +27,11 @@ use Goblin\Output\TextOutput;
 
 $args = (new ParsedArgv($argv))->arguments();
 
-$output = function_exists('posix_isatty') && posix_isatty(STDOUT)
+$isTty = function_exists('stream_isatty')
+    ? stream_isatty(STDOUT)
+    : (function_exists('posix_isatty') && posix_isatty(STDOUT));
+
+$output = $isTty
     ? new TextOutput()
     : new JsonOutput();
 
