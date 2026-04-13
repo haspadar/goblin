@@ -8,6 +8,7 @@ use Goblin\Config\Config;
 use Goblin\Git\CommitCheck;
 use Goblin\Git\CommitMessage;
 use Goblin\Git\Git;
+use Goblin\GoblinException;
 use Goblin\Output\Output;
 use Override;
 
@@ -24,14 +25,20 @@ final readonly class CommitCheckCommand implements Command
     #[Override]
     public function run(Arguments $args): int
     {
-        /** @var non-empty-string $regex */
-        $regex = $this->config->value('project-regex');
+        try {
+            /** @var non-empty-string $regex */
+            $regex = $this->config->value('project-regex');
 
-        (new CommitCheck(
-            $this->git->currentBranch(),
-            (new CommitMessage($args->positional(0)))->text(),
-            $regex,
-        ))->validate();
+            (new CommitCheck(
+                $this->git->currentBranch(),
+                (new CommitMessage($args->positional(0)))->text(),
+                $regex,
+            ))->validate();
+        } catch (GoblinException $e) {
+            $this->output->error($e->getMessage());
+
+            return 1;
+        }
 
         $this->output->success('Commit is valid');
 

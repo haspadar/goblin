@@ -6,7 +6,6 @@ namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
 use Goblin\Cli\CommitCheckCommand;
-use Goblin\GoblinException;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeGit;
 use Goblin\Tests\Fake\FakeOutput;
@@ -26,32 +25,26 @@ final class CommitCheckCommandTest extends TestCase
 
         self::assertSame(
             0,
-            $cmd->run(new Arguments(
-                'commit-check',
-                [],
-                ['PROJ-42 Fix login bug'],
-            )),
+            $cmd->run(new Arguments('commit-check', [], ['PROJ-42 Fix login bug'])),
             'matching keys must pass validation',
         );
     }
 
     #[Test]
-    public function throwsForMismatchedKeys(): void
+    public function returnsOneForMismatchedKeys(): void
     {
+        $output = new FakeOutput();
         $cmd = new CommitCheckCommand(
             new FakeGit('PROJ-42-feature'),
             new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
-            new FakeOutput(),
+            $output,
         );
 
-        $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage('differs from commit message');
-
-        $cmd->run(new Arguments(
-            'commit-check',
-            [],
-            ['OTHER-99 Wrong key'],
-        ));
+        self::assertSame(
+            1,
+            $cmd->run(new Arguments('commit-check', [], ['OTHER-99 Wrong key'])),
+            'mismatched keys must return exit code 1',
+        );
     }
 
     #[Test]
@@ -70,6 +63,25 @@ final class CommitCheckCommandTest extends TestCase
             'Commit is valid',
             $output->successes[0] ?? '',
             'must output success message on valid commit',
+        );
+    }
+
+    #[Test]
+    public function outputsErrorMessageOnFailure(): void
+    {
+        $output = new FakeOutput();
+        $cmd = new CommitCheckCommand(
+            new FakeGit('SHOP-77-cart'),
+            new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+            $output,
+        );
+
+        $cmd->run(new Arguments('commit-check', [], ['BILL-22 Update invoice']));
+
+        self::assertStringContainsString(
+            'differs from commit message',
+            $output->errors[0] ?? '',
+            'must output error message on invalid commit',
         );
     }
 }
