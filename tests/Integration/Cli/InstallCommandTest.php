@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goblin\Tests\Unit\Cli;
+namespace Goblin\Tests\Integration\Cli;
 
 use Goblin\Cli\Arguments;
 use Goblin\Cli\InstallCommand;

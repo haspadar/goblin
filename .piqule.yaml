@@ -2,4 +2,3 @@
 override:
     ci.pr.max_lines_changed: 700
     phpmetrics.coupling.max_afferent: 18
-    phpunit.testsuites.integration: []

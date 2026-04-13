@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Goblin\Tests\Unit\Docker;
+namespace Goblin\Tests\Integration\Docker;
 
 use Goblin\Docker\ShellDocker;
 use PHPUnit\Framework\Attributes\Test;
