@@ -64,7 +64,7 @@ try {
         'issue' => new IssueCommand($http, $git, $config),
         'daily' => new DailyCommand($http, $config),
         'branch-check' => new BranchCheckCommand($git, $http, $config),
-        'commit-check' => new CommitCheckCommand($git, $config),
+        'commit-check' => new CommitCheckCommand($git, $config, $output),
     ];
 
     if ($config->has('container')) {
