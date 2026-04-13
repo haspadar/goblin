@@ -8,6 +8,7 @@ use Goblin\Cli\Arguments;
 use Goblin\Cli\CommitCheckCommand;
 use Goblin\GoblinException;
 use Goblin\Tests\Fake\FakeConfig;
+use Goblin\Tests\Fake\FakeGit;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -17,6 +18,7 @@ final class CommitCheckCommandTest extends TestCase
     public function returnsZeroForMatchingKeys(): void
     {
         $cmd = new CommitCheckCommand(
+            new FakeGit('PROJ-42-feature'),
             new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
         );
 
@@ -25,7 +27,7 @@ final class CommitCheckCommandTest extends TestCase
             $cmd->run(new Arguments(
                 'commit-check',
                 [],
-                ['PROJ-42-feature', 'PROJ-42 Fix login bug'],
+                ['PROJ-42 Fix login bug'],
             )),
             'matching keys must pass validation',
         );
@@ -35,6 +37,7 @@ final class CommitCheckCommandTest extends TestCase
     public function throwsForMismatchedKeys(): void
     {
         $cmd = new CommitCheckCommand(
+            new FakeGit('PROJ-42-feature'),
             new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
         );
 
@@ -44,7 +47,7 @@ final class CommitCheckCommandTest extends TestCase
         $cmd->run(new Arguments(
             'commit-check',
             [],
-            ['PROJ-42-feature', 'OTHER-99 Wrong key'],
+            ['OTHER-99 Wrong key'],
         ));
     }
 }
