@@ -9,6 +9,7 @@ use Goblin\Cli\CommitCheckCommand;
 use Goblin\GoblinException;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeGit;
+use Goblin\Tests\Fake\FakeOutput;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
 
@@ -20,6 +21,7 @@ final class CommitCheckCommandTest extends TestCase
         $cmd = new CommitCheckCommand(
             new FakeGit('PROJ-42-feature'),
             new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+            new FakeOutput(),
         );
 
         self::assertSame(
@@ -39,6 +41,7 @@ final class CommitCheckCommandTest extends TestCase
         $cmd = new CommitCheckCommand(
             new FakeGit('PROJ-42-feature'),
             new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+            new FakeOutput(),
         );
 
         $this->expectException(GoblinException::class);
@@ -49,5 +52,24 @@ final class CommitCheckCommandTest extends TestCase
             [],
             ['OTHER-99 Wrong key'],
         ));
+    }
+
+    #[Test]
+    public function outputsSuccessMessage(): void
+    {
+        $output = new FakeOutput();
+        $cmd = new CommitCheckCommand(
+            new FakeGit('ACME-10-deploy'),
+            new FakeConfig(['project-regex' => '/[A-Z]+-\d+/']),
+            $output,
+        );
+
+        $cmd->run(new Arguments('commit-check', [], ['ACME-10 Ship release']));
+
+        self::assertSame(
+            'Commit is valid',
+            $output->successes[0] ?? '',
+            'must output success message on valid commit',
+        );
     }
 }

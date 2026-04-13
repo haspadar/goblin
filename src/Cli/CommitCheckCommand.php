@@ -8,6 +8,7 @@ use Goblin\Config\Config;
 use Goblin\Git\CommitCheck;
 use Goblin\Git\CommitMessage;
 use Goblin\Git\Git;
+use Goblin\Output\Output;
 use Override;
 
 /**
@@ -16,9 +17,9 @@ use Override;
 final readonly class CommitCheckCommand implements Command
 {
     /**
-     * Stores git and configuration.
+     * Stores git, configuration, and output channel.
      */
-    public function __construct(private Git $git, private Config $config) {}
+    public function __construct(private Git $git, private Config $config, private Output $output) {}
 
     #[Override]
     public function run(Arguments $args): int
@@ -31,6 +32,8 @@ final readonly class CommitCheckCommand implements Command
             (new CommitMessage($args->positional(0)))->text(),
             $regex,
         ))->validate();
+
+        $this->output->success('Commit is valid');
 
         return 0;
     }
