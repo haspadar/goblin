@@ -52,8 +52,9 @@ final readonly class JsonOutput implements Output
     {
         $json = json_encode(
             ['level' => $level, 'message' => $text],
-            JSON_UNESCAPED_UNICODE,
+            JSON_UNESCAPED_UNICODE | JSON_INVALID_UTF8_SUBSTITUTE,
         );
-        fwrite($stream, ($json !== false ? $json : $text) . PHP_EOL);
+        assert(is_string($json));
+        fwrite($stream, $json . PHP_EOL);
     }
 }
