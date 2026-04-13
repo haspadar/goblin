@@ -71,6 +71,26 @@ final class DebugOutputTest extends TestCase
         );
     }
 
+    #[Test]
+    public function writesTimestampedDebugLineToStderr(): void
+    {
+        $fake = new FakeOutput();
+        $stderr = fopen('php://memory', 'rw');
+        /** @var resource $stderr */
+        $debug = new DebugOutput($fake, $stderr);
+
+        $debug->info('deploying now');
+
+        rewind($stderr);
+        $line = (string) stream_get_contents($stderr);
+
+        self::assertMatchesRegularExpression(
+            '/^\[\d{2}:\d{2}:\d{2}\] \[info\] deploying now$/',
+            trim($line),
+            'debug must write timestamped line to stderr',
+        );
+    }
+
     /**
      * @return resource
      */
