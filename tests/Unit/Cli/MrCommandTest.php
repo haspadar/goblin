@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\MrCommand;
+use Goblin\Cli\Command\MrCommand;
 use Goblin\GoblinException;
 use Goblin\Tests\Fake\FakeGit;
 use Goblin\Tests\Fake\FakeHttp;

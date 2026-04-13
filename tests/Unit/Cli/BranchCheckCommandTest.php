@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\BranchCheckCommand;
+use Goblin\Cli\Command\BranchCheckCommand;
 use Goblin\GoblinException;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeGit;

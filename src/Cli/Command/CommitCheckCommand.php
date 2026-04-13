@@ -2,8 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Goblin\Cli;
+namespace Goblin\Cli\Command;
 
+use Goblin\Cli\Arguments;
 use Goblin\Config\Config;
 use Goblin\Git\CommitCheck;
 use Goblin\Git\CommitMessage;
