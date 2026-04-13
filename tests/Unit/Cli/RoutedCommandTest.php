@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\RoutedCommand;
+use Goblin\Cli\Command\RoutedCommand;
 use Goblin\GoblinException;
 use Goblin\Tests\Fake\FakeCommand;
 use PHPUnit\Framework\Attributes\Test;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Fake;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\Command;
+use Goblin\Cli\Command\Command;
 use LogicException;
 use Override;
 

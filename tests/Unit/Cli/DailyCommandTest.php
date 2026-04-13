@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\DailyCommand;
+use Goblin\Cli\Command\DailyCommand;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeHttp;
 use PHPUnit\Framework\Attributes\Test;

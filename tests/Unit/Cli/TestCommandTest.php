@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\TestCommand;
+use Goblin\Cli\Command\TestCommand;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeDocker;
 use Goblin\Tests\Fake\FakeOutput;

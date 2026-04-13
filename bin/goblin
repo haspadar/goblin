@@ -5,15 +5,15 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Goblin\Cli\BranchCheckCommand;
-use Goblin\Cli\CommitCheckCommand;
-use Goblin\Cli\DailyCommand;
-use Goblin\Cli\InstallCommand;
-use Goblin\Cli\IssueCommand;
-use Goblin\Cli\MrCommand;
+use Goblin\Cli\Command\BranchCheckCommand;
+use Goblin\Cli\Command\CommitCheckCommand;
+use Goblin\Cli\Command\DailyCommand;
+use Goblin\Cli\Command\InstallCommand;
+use Goblin\Cli\Command\IssueCommand;
+use Goblin\Cli\Command\MrCommand;
+use Goblin\Cli\Command\RoutedCommand;
+use Goblin\Cli\Command\TestCommand;
 use Goblin\Cli\ParsedArgv;
-use Goblin\Cli\RoutedCommand;
-use Goblin\Cli\TestCommand;
 use Goblin\Config\ConfigFile;
 use Goblin\Config\FileConfig;
 use Goblin\Docker\ShellDocker;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Integration\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\InstallCommand;
+use Goblin\Cli\Command\InstallCommand;
 use Goblin\Tests\Constraint\InstalledHooks;
 use Goblin\Tests\Constraint\SkippedHooks;
 use Goblin\Tests\Fake\FakeOutput;

@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Unit\Cli;
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\CommitCheckCommand;
+use Goblin\Cli\Command\CommitCheckCommand;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeGit;
 use Goblin\Tests\Fake\FakeOutput;
