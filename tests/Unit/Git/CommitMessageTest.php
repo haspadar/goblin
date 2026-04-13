@@ -24,19 +24,13 @@ final class CommitMessageTest extends TestCase
     #[Test]
     public function readsTextFromFileWhenInputIsFilePath(): void
     {
-        $file = tempnam(sys_get_temp_dir(), 'goblin-commit-');
-        assert(is_string($file));
-        file_put_contents($file, "PROJ-99 Add caching layer\n");
+        $file = $this->commitFile("PROJ-99 Add caching layer\n");
 
-        try {
-            self::assertSame(
-                'PROJ-99 Add caching layer',
-                (new CommitMessage($file))->text(),
-                'file path input must return trimmed file contents',
-            );
-        } finally {
-            unlink($file);
-        }
+        self::assertSame(
+            'PROJ-99 Add caching layer',
+            (new CommitMessage($file))->text(),
+            'file path input must return trimmed file contents',
+        );
     }
 
     #[Test]
@@ -46,5 +40,14 @@ final class CommitMessageTest extends TestCase
         $this->expectExceptionMessage('Commit message is required');
 
         (new CommitMessage(''))->text();
+    }
+
+    private function commitFile(string $content): string
+    {
+        $path = tempnam(sys_get_temp_dir(), 'goblin-commit-');
+        assert(is_string($path));
+        file_put_contents($path, $content);
+
+        return $path;
     }
 }
