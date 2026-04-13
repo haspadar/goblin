@@ -76,6 +76,24 @@ final class JsonOutputTest extends TestCase
         );
     }
 
+    #[Test]
+    public function handlesInvalidUtf8WithoutBreakingJson(): void
+    {
+        $stream = fopen('php://memory', 'rw');
+        /** @var resource $stream */
+        $output = new JsonOutput($stream);
+
+        $output->info("broken \xc3 bytes");
+
+        $decoded = $this->readJson($stream);
+
+        self::assertSame(
+            'info',
+            $decoded['level'] ?? '',
+            'invalid UTF-8 must not break JSON structure',
+        );
+    }
+
     /**
      * @param resource $stream
      * @return array<string, mixed>|null
