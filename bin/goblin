@@ -23,6 +23,7 @@ use Goblin\Http\CurlHttp;
 use Goblin\Http\TokenHttp;
 use Goblin\Output\DebugOutput;
 use Goblin\Output\JsonOutput;
+use Goblin\Output\PrefixedOutput;
 use Goblin\Output\TextOutput;
 
 $args = (new ParsedArgv($argv))->arguments();
@@ -31,9 +32,10 @@ $isTty = function_exists('stream_isatty')
     ? stream_isatty(STDOUT)
     : (function_exists('posix_isatty') && posix_isatty(STDOUT));
 
-$output = $isTty
-    ? new TextOutput()
-    : new JsonOutput();
+$output = new PrefixedOutput(
+    'Goblin: ',
+    $isTty ? new TextOutput() : new JsonOutput(),
+);
 
 if ($args->flag('debug')) {
     $output = new DebugOutput($output);
