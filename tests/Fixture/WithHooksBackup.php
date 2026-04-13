@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Goblin\Tests\Fixture;
 
 use Goblin\Cli\InstallHook;
+use Goblin\GoblinException;
 
 /**
  * Backs up git hooks, runs a closure, then restores originals.
@@ -46,7 +47,7 @@ final class WithHooksBackup
         exec('git rev-parse --show-toplevel', $lines, $code);
 
         if ($code !== 0 || $lines === []) {
-            throw new \RuntimeException('Not a git repository');
+            throw new GoblinException('Not a git repository');
         }
 
         return $lines[0] . '/.git/hooks';
