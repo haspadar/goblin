@@ -25,16 +25,19 @@ final readonly class ProjectVersions
      */
     public function names(): array
     {
-        $allVersions = $this->http->json(
+        $response = $this->http->json(
             'GET',
             "/rest/api/3/project/{$this->project}/version?status=unreleased&orderBy=name",
         );
+
+        /** @psalm-var mixed $allVersions */
+        $allVersions = $response['values'] ?? [];
 
         $result = [];
         $pattern = '/^' . preg_quote($this->project, '/') . '\s+\d+\.\d+\.\d+$/';
 
         /** @psalm-var mixed $version */
-        foreach ($allVersions as $version) {
+        foreach (is_array($allVersions) ? $allVersions : [] as $version) {
             if (!is_array($version)) {
                 continue;
             }

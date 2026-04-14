@@ -13,22 +13,33 @@ use PHPUnit\Framework\TestCase;
 final class VersionsListTest extends TestCase
 {
     #[Test]
-    public function returnsPairsWithTargetBranches(): void
+    public function returnsVersionNameInPair(): void
     {
         $list = new VersionsList(
             new FakeHttp([
                 'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'PLAT 3.0.0'],
-                    ['name' => 'PLAT 3.1.0'],
+                    'values' => [['name' => 'PLAT 3.0.0']],
                 ],
             ]),
             'PLAT',
         );
 
-        $pairs = $list->pairs();
+        self::assertSame('PLAT 3.0.0', $list->pairs()[0]['version'], 'pair must contain version name');
+    }
 
-        self::assertSame('PLAT 3.0.0', $pairs[0]['version'], 'first pair must contain version name');
-        self::assertArrayHasKey('branch', $pairs[0], 'each pair must contain branch');
+    #[Test]
+    public function returnsBranchInPair(): void
+    {
+        $list = new VersionsList(
+            new FakeHttp([
+                'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name' => [
+                    'values' => [['name' => 'PLAT 3.0.0']],
+                ],
+            ]),
+            'PLAT',
+        );
+
+        self::assertSame('master', $list->pairs()[0]['branch'], 'single version must map to master');
     }
 
     #[Test]
@@ -37,7 +48,7 @@ final class VersionsListTest extends TestCase
         $list = new VersionsList(
             new FakeHttp([
                 'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'Sprint 99'],
+                    'values' => [['name' => 'Sprint 99']],
                 ],
             ]),
             'CORE',

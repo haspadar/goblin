@@ -60,9 +60,11 @@ final class BranchCheckTest extends TestCase
                     ],
                 ],
                 'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'MSP 14.0.0', 'released' => false],
-                    ['name' => 'MSP 14.0.1', 'released' => false],
-                    ['name' => 'MSP 15.0.0', 'released' => false],
+                    'values' => [
+                        ['name' => 'MSP 14.0.0', 'released' => false],
+                        ['name' => 'MSP 14.0.1', 'released' => false],
+                        ['name' => 'MSP 15.0.0', 'released' => false],
+                    ],
                 ],
             ]),
             new FakeConfig([
@@ -88,8 +90,10 @@ final class BranchCheckTest extends TestCase
                     ],
                 ],
                 'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'CRS 10.0.0', 'released' => false],
-                    ['name' => 'CRS 10.0.1', 'released' => false],
+                    'values' => [
+                        ['name' => 'CRS 10.0.0', 'released' => false],
+                        ['name' => 'CRS 10.0.1', 'released' => false],
+                    ],
                 ],
             ]),
             new FakeConfig([
@@ -180,9 +184,11 @@ final class BranchCheckTest extends TestCase
                     ],
                 ],
                 'GET /rest/api/3/project/QA/version?status=unreleased&orderBy=name' => [
-                    'invalid-string',
-                    ['name' => 'QA 8.0.0', 'released' => false],
-                    ['name' => 'QA 8.0.1', 'released' => false],
+                    'values' => [
+                        'invalid-string',
+                        ['name' => 'QA 8.0.0', 'released' => false],
+                        ['name' => 'QA 8.0.1', 'released' => false],
+                    ],
                 ],
             ]),
             new FakeConfig([
