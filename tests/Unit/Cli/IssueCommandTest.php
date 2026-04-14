@@ -24,7 +24,7 @@ final class IssueCommandTest extends TestCase
         );
 
         ob_start();
-        $code = $cmd->run(new Arguments('issue', [], ['PROJ-42']));
+        $code = $cmd->run(new Arguments([], ['PROJ-42']));
         ob_end_clean();
 
         self::assertSame(
@@ -61,7 +61,7 @@ final class IssueCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('issue', [], ['PROJ-42', 'description']));
+        $cmd->run(new Arguments([], ['PROJ-42', 'description']));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
@@ -87,7 +87,7 @@ final class IssueCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('issue', [], ['PROJ-42', 'raw']));
+        $cmd->run(new Arguments([], ['PROJ-42', 'raw']));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
@@ -113,7 +113,7 @@ final class IssueCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('issue', [], ['99', 'raw']));
+        $cmd->run(new Arguments([], ['99', 'raw']));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
@@ -139,7 +139,7 @@ final class IssueCommandTest extends TestCase
         );
 
         ob_start();
-        $code = $cmd->run(new Arguments('issue', [], ['PROJ-10', 'raw']));
+        $code = $cmd->run(new Arguments([], ['PROJ-10', 'raw']));
         ob_end_clean();
 
         self::assertSame(

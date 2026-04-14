@@ -25,7 +25,7 @@ final class TestCommandTest extends TestCase
             $output,
         );
 
-        $code = $cmd->run(new Arguments('test', [], []));
+        $code = $cmd->run(new Arguments([], []));
 
         self::assertSame(0, $code, 'must return 0 when tests pass');
     }
@@ -40,7 +40,7 @@ final class TestCommandTest extends TestCase
             new FakeOutput(),
         );
 
-        $cmd->run(new Arguments('test', ['parallel' => true], []));
+        $cmd->run(new Arguments(['parallel' => true], []));
 
         self::assertSame(
             'php artisan test --parallel',
@@ -59,7 +59,7 @@ final class TestCommandTest extends TestCase
             $output,
         );
 
-        $code = $cmd->run(new Arguments('test', [], []));
+        $code = $cmd->run(new Arguments([], []));
 
         self::assertSame(1, $code, 'must return 1 when tests fail');
     }
@@ -74,7 +74,7 @@ final class TestCommandTest extends TestCase
             $output,
         );
 
-        $code = $cmd->run(new Arguments('test', [], []));
+        $code = $cmd->run(new Arguments([], []));
 
         self::assertSame(0, $code, 'must return 0 when container is not running');
     }
@@ -89,7 +89,7 @@ final class TestCommandTest extends TestCase
             $output,
         );
 
-        $cmd->run(new Arguments('test', [], []));
+        $cmd->run(new Arguments([], []));
 
         self::assertStringContainsString(
             'scheduler',
@@ -108,7 +108,7 @@ final class TestCommandTest extends TestCase
             $output,
         );
 
-        $cmd->run(new Arguments('test', [], []));
+        $cmd->run(new Arguments([], []));
 
         self::assertSame(
             'Tests passed.',
@@ -127,7 +127,7 @@ final class TestCommandTest extends TestCase
             $output,
         );
 
-        $cmd->run(new Arguments('test', [], []));
+        $cmd->run(new Arguments([], []));
 
         self::assertSame(
             'Tests failed.',
@@ -146,7 +146,7 @@ final class TestCommandTest extends TestCase
             new FakeOutput(),
         );
 
-        $cmd->run(new Arguments('test', [], []));
+        $cmd->run(new Arguments([], []));
 
         self::assertSame(
             'custom-runner',

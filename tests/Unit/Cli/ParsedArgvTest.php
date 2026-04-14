@@ -13,11 +13,11 @@ final class ParsedArgvTest extends TestCase
     #[Test]
     public function parsesCommandFromArgv(): void
     {
-        $args = (new ParsedArgv(['bin/goblin', 'issue', 'ABC-42']))->arguments();
+        $parsed = new ParsedArgv(['bin/goblin', 'issue', 'ABC-42']);
 
         self::assertSame(
             'issue',
-            $args->command(),
+            $parsed->command(),
             'second argv element must become command',
         );
     }
@@ -60,11 +60,11 @@ final class ParsedArgvTest extends TestCase
     #[Test]
     public function returnsEmptyCommandForMinimalArgv(): void
     {
-        $args = (new ParsedArgv(['bin/goblin']))->arguments();
+        $parsed = new ParsedArgv(['bin/goblin']);
 
         self::assertSame(
             '',
-            $args->command(),
+            $parsed->command(),
             'missing command must yield empty string',
         );
     }
