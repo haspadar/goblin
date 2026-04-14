@@ -41,7 +41,7 @@ $isTty = function_exists('stream_isatty')
     : (function_exists('posix_isatty') && posix_isatty(STDOUT));
 
 $output = new PrefixedOutput(
-    'versions: ',
+    'jira-releases: ',
     $isTty ? new TextOutput() : new JsonOutput(),
 );
 
