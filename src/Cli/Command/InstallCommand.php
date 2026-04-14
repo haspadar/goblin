@@ -77,28 +77,26 @@ final readonly class InstallCommand implements Command
      */
     private function script(InstallHook $hook): string
     {
-        $goblin = 'php "$ROOT/bin/goblin"';
-
         return match ($hook) {
             InstallHook::CommitMsg => implode("\n", [
                 self::SHEBANG,
                 'set -e',
                 self::ROOT_LINE,
-                "{$goblin} branch-check",
-                "{$goblin} commit-check \"\$1\"",
+                'php "$ROOT/bin/branch-check"',
+                'php "$ROOT/bin/commit-check" "$1"',
                 '',
             ]),
             InstallHook::PrePush => implode("\n", [
                 self::SHEBANG,
                 self::ROOT_LINE,
-                "exec {$goblin} test --parallel",
+                'exec php "$ROOT/bin/docker-test" --parallel',
                 '',
             ]),
             InstallHook::PostCheckout => implode("\n", [
                 self::SHEBANG,
                 '[ "$3" != "1" ] && exit 0',
                 self::ROOT_LINE,
-                "exec {$goblin} branch-check",
+                'exec php "$ROOT/bin/branch-check"',
                 '',
             ]),
         };
