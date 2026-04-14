@@ -38,11 +38,11 @@ php bin/goblin issue PROJ-1234 raw          # raw JSON payload
 php bin/goblin issue 1234                   # short key (project from branch)
 php bin/goblin daily                        # daily activity report
 
-# Git validation
-php bin/goblin branch-check                 # validate current branch
-php bin/goblin commit-check .git/COMMIT_EDITMSG  # validate from file
-php bin/goblin commit-check "PRJ-42 Fix auth"   # validate text directly
-php bin/goblin commit-check --branch=PRJ-42 "PRJ-42 Fix auth"  # explicit branch
+# Git validation (standalone scripts, called by hooks)
+php bin/branch-check                              # validate current branch
+php bin/commit-check .git/COMMIT_EDITMSG          # validate from file
+php bin/commit-check "PRJ-42 Fix auth"            # validate text directly
+php bin/commit-check --branch=PRJ-42 "PRJ-42 Fix auth"  # explicit branch
 
 # GitLab merge requests
 php bin/goblin mr create --source=PRJ-42-auth --target=main --title="PRJ-42 auth"
@@ -66,8 +66,8 @@ Add `--debug` to any command to log timestamped entries to stderr.
 ## Testing
 
 ```bash
-php bin/goblin test                         # run tests in Docker
-php bin/goblin test --parallel              # run tests in parallel
+php bin/docker-test                         # run tests in Docker
+php bin/docker-test --parallel              # run tests in parallel
 ```
 
 ## Quality
