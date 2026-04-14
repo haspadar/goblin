@@ -1,0 +1,33 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Goblin\Cli\Arguments;
+use Goblin\Cli\Command\BranchCheckCommand;
+use Goblin\Config\ConfigFile;
+use Goblin\Config\FileConfig;
+use Goblin\Git\ShellGit;
+use Goblin\GoblinException;
+use Goblin\Http\CurlHttp;
+
+try {
+    $configPath = dirname(__DIR__) . '/.goblin.php';
+    $config = new FileConfig((new ConfigFile($configPath))->data());
+
+    $http = new CurlHttp(
+        $config->value('jira-url'),
+        $config->value('jira-user'),
+        $config->value('jira-token'),
+    );
+
+    $code = (new BranchCheckCommand(new ShellGit(), $http, $config))
+        ->run(new Arguments([], []));
+} catch (GoblinException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+    $code = 1;
+}
+
+exit($code);
