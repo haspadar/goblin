@@ -16,9 +16,16 @@ use Goblin\Output\TextOutput;
 
 $options = [];
 $positionals = [];
+$parsingOptions = true;
 
 foreach (array_slice($argv, 1) as $arg) {
-    if (str_starts_with($arg, '--')) {
+    if ($parsingOptions && $arg === '--') {
+        $parsingOptions = false;
+
+        continue;
+    }
+
+    if ($parsingOptions && str_starts_with($arg, '--')) {
         $parts = explode('=', substr($arg, 2), 2);
         $options[$parts[0]] = $parts[1] ?? true;
     } else {
