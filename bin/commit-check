@@ -27,6 +27,7 @@ foreach (array_slice($argv, 1) as $arg) {
 }
 
 $output = new PrefixedOutput('commit-check: ', new TextOutput());
+$code = 1;
 
 try {
     $configPath = dirname(__DIR__) . '/.goblin.php';
