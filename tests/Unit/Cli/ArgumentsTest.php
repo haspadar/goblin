@@ -11,21 +11,9 @@ use PHPUnit\Framework\TestCase;
 final class ArgumentsTest extends TestCase
 {
     #[Test]
-    public function returnsCommand(): void
-    {
-        $args = new Arguments('issue', [], []);
-
-        self::assertSame(
-            'issue',
-            $args->command(),
-            'command must be returned as provided',
-        );
-    }
-
-    #[Test]
     public function returnsOptionValue(): void
     {
-        $args = new Arguments('mr', ['title' => 'Dark mode'], []);
+        $args = new Arguments(['title' => 'Dark mode'], []);
 
         self::assertSame(
             'Dark mode',
@@ -37,7 +25,7 @@ final class ArgumentsTest extends TestCase
     #[Test]
     public function returnsEmptyStringForMissingOption(): void
     {
-        $args = new Arguments('mr', [], []);
+        $args = new Arguments([], []);
 
         self::assertSame(
             '',
@@ -49,7 +37,7 @@ final class ArgumentsTest extends TestCase
     #[Test]
     public function detectsFlagPresence(): void
     {
-        $args = new Arguments('mr', ['draft' => true], []);
+        $args = new Arguments(['draft' => true], []);
 
         self::assertTrue(
             $args->flag('draft'),
@@ -60,7 +48,7 @@ final class ArgumentsTest extends TestCase
     #[Test]
     public function returnsFalseForMissingFlag(): void
     {
-        $args = new Arguments('mr', [], []);
+        $args = new Arguments([], []);
 
         self::assertFalse(
             $args->flag('draft'),
@@ -71,7 +59,7 @@ final class ArgumentsTest extends TestCase
     #[Test]
     public function returnsPositionalByIndex(): void
     {
-        $args = new Arguments('issue', [], ['PROJ-99', 'description']);
+        $args = new Arguments([], ['PROJ-99', 'description']);
 
         self::assertSame(
             'PROJ-99',
@@ -83,7 +71,7 @@ final class ArgumentsTest extends TestCase
     #[Test]
     public function returnsEmptyStringForMissingPositional(): void
     {
-        $args = new Arguments('issue', [], []);
+        $args = new Arguments([], []);
 
         self::assertSame(
             '',

@@ -30,7 +30,7 @@ final class MrCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('mr', [
+        $cmd->run(new Arguments([
             'source' => 'add-caching',
             'target' => 'main',
             'title' => 'Add caching layer',
@@ -61,7 +61,7 @@ final class MrCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('mr', [], ['view', '7']));
+        $cmd->run(new Arguments([], ['view', '7']));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
@@ -85,7 +85,7 @@ final class MrCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('mr', ['state' => 'merged'], ['list']));
+        $cmd->run(new Arguments(['state' => 'merged'], ['list']));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
@@ -115,7 +115,7 @@ final class MrCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('mr', ['ready' => true], ['update', '4']));
+        $cmd->run(new Arguments(['ready' => true], ['update', '4']));
         ob_end_clean();
 
         self::assertSame(
@@ -136,7 +136,7 @@ final class MrCommandTest extends TestCase
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('Unknown mr subcommand');
 
-        $cmd->run(new Arguments('mr', [], ['merge']));
+        $cmd->run(new Arguments([], ['merge']));
     }
 
     #[Test]
@@ -150,7 +150,7 @@ final class MrCommandTest extends TestCase
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('IID is required');
 
-        $cmd->run(new Arguments('mr', [], ['view']));
+        $cmd->run(new Arguments([], ['view']));
     }
 
     #[Test]
@@ -164,7 +164,7 @@ final class MrCommandTest extends TestCase
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('--source, --target and --title are required');
 
-        $cmd->run(new Arguments('mr', [], ['create']));
+        $cmd->run(new Arguments([], ['create']));
     }
 
     #[Test]
@@ -178,6 +178,6 @@ final class MrCommandTest extends TestCase
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('--draft and --ready are mutually exclusive');
 
-        $cmd->run(new Arguments('mr', ['draft' => true, 'ready' => true], ['update', '5']));
+        $cmd->run(new Arguments(['draft' => true, 'ready' => true], ['update', '5']));
     }
 }

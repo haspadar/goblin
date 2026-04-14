@@ -21,7 +21,7 @@ final class InstallCommandTest extends TestCase
         $output = new FakeOutput();
 
         (new WithHooksBackup())->run(function () use ($output): void {
-            (new InstallCommand($output))->run(new Arguments('', [], []));
+            (new InstallCommand($output))->run(new Arguments([], []));
         });
 
         self::assertThat($output, new InstalledHooks());
@@ -33,8 +33,8 @@ final class InstallCommandTest extends TestCase
         $output = new FakeOutput();
 
         (new WithHooksBackup())->run(function () use ($output): void {
-            (new InstallCommand(new FakeOutput()))->run(new Arguments('', [], []));
-            (new InstallCommand($output))->run(new Arguments('', [], []));
+            (new InstallCommand(new FakeOutput()))->run(new Arguments([], []));
+            (new InstallCommand($output))->run(new Arguments([], []));
         });
 
         self::assertThat($output, new SkippedHooks());
@@ -45,7 +45,7 @@ final class InstallCommandTest extends TestCase
     {
         $code = (new WithHooksBackup())->run(
             fn(): int => (new InstallCommand(new FakeOutput()))
-                ->run(new Arguments('', [], [])),
+                ->run(new Arguments([], [])),
         );
 
         self::assertSame(0, $code, 'must return 0 on success');

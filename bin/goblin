@@ -5,18 +5,13 @@ declare(strict_types=1);
 
 require __DIR__ . '/../vendor/autoload.php';
 
-use Goblin\Cli\Command\BranchCheckCommand;
-use Goblin\Cli\Command\CommitCheckCommand;
 use Goblin\Cli\Command\DailyCommand;
 use Goblin\Cli\Command\InstallCommand;
 use Goblin\Cli\Command\IssueCommand;
 use Goblin\Cli\Command\MrCommand;
-use Goblin\Cli\Command\RoutedCommand;
-use Goblin\Cli\Command\TestCommand;
 use Goblin\Cli\ParsedArgv;
 use Goblin\Config\ConfigFile;
 use Goblin\Config\FileConfig;
-use Goblin\Docker\ShellDocker;
 use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
@@ -26,7 +21,9 @@ use Goblin\Output\JsonOutput;
 use Goblin\Output\PrefixedOutput;
 use Goblin\Output\TextOutput;
 
-$args = (new ParsedArgv($argv))->arguments();
+$parsed = new ParsedArgv($argv);
+$command = $parsed->command();
+$args = $parsed->arguments();
 
 $isTty = function_exists('stream_isatty')
     ? stream_isatty(STDOUT)
@@ -41,7 +38,7 @@ if ($args->flag('debug')) {
     $output = new DebugOutput($output);
 }
 
-if ($args->command() === 'install') {
+if ($command === 'install') {
     try {
         $code = (new InstallCommand($output))->run($args);
     } catch (GoblinException $e) {
@@ -65,13 +62,7 @@ try {
     $commands = [
         'issue' => new IssueCommand($http, $git, $config),
         'daily' => new DailyCommand($http, $config),
-        'branch-check' => new BranchCheckCommand($git, $http, $config),
-        'commit-check' => new CommitCheckCommand($git, $config, $output),
     ];
-
-    if ($config->has('container')) {
-        $commands['test'] = new TestCommand(new ShellDocker($output), $config, $output);
-    }
 
     if ($config->has('gitlab-url') && $config->has('gitlab-token')) {
         $commands['mr'] = new MrCommand(
@@ -84,7 +75,11 @@ try {
         );
     }
 
-    $code = (new RoutedCommand($commands))->run($args);
+    if ($command === '' || !array_key_exists($command, $commands)) {
+        throw new GoblinException("Unknown command: {$command}");
+    }
+
+    $code = $commands[$command]->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);
     $code = 1;

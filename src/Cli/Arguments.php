@@ -17,19 +17,7 @@ final readonly class Arguments
      * @param array<string, string|true> $options
      * @param list<string> $positionals
      */
-    public function __construct(
-        private string $command,
-        private array $options,
-        private array $positionals,
-    ) {}
-
-    /**
-     * Returns the subcommand name.
-     */
-    public function command(): string
-    {
-        return $this->command;
-    }
+    public function __construct(private array $options, private array $positionals) {}
 
     /**
      * Returns an option value by key, or empty string if absent.

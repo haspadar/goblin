@@ -22,7 +22,7 @@ final class DailyCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('daily', [], []));
+        $cmd->run(new Arguments([], []));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(
@@ -63,7 +63,7 @@ final class DailyCommandTest extends TestCase
         );
 
         ob_start();
-        $cmd->run(new Arguments('daily', [], []));
+        $cmd->run(new Arguments([], []));
         $output = (string) ob_get_clean();
 
         self::assertStringContainsString(

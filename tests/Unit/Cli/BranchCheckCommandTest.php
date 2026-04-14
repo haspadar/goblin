@@ -29,7 +29,7 @@ final class BranchCheckCommandTest extends TestCase
 
         self::assertSame(
             0,
-            $cmd->run(new Arguments('branch-check', [], [])),
+            $cmd->run(new Arguments([], [])),
             'protected branch must pass validation',
         );
     }
@@ -60,6 +60,6 @@ final class BranchCheckCommandTest extends TestCase
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('requires base');
 
-        $cmd->run(new Arguments('branch-check', [], []));
+        $cmd->run(new Arguments([], []));
     }
 }

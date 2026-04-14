@@ -25,7 +25,7 @@ final class CommitCheckCommandTest extends TestCase
 
         self::assertSame(
             0,
-            $cmd->run(new Arguments('commit-check', [], ['PROJ-42 Fix login bug'])),
+            $cmd->run(new Arguments([], ['PROJ-42 Fix login bug'])),
             'matching keys must pass validation',
         );
     }
@@ -42,7 +42,7 @@ final class CommitCheckCommandTest extends TestCase
 
         self::assertSame(
             1,
-            $cmd->run(new Arguments('commit-check', [], ['OTHER-99 Wrong key'])),
+            $cmd->run(new Arguments([], ['OTHER-99 Wrong key'])),
             'mismatched keys must return exit code 1',
         );
     }
@@ -57,7 +57,7 @@ final class CommitCheckCommandTest extends TestCase
             $output,
         );
 
-        $cmd->run(new Arguments('commit-check', [], ['ACME-10 Ship release']));
+        $cmd->run(new Arguments([], ['ACME-10 Ship release']));
 
         self::assertSame(
             'Commit is valid',
@@ -78,7 +78,6 @@ final class CommitCheckCommandTest extends TestCase
         self::assertSame(
             0,
             $cmd->run(new Arguments(
-                'commit-check',
                 ['branch' => 'PROJ-55-refactor'],
                 ['PROJ-55 Simplify auth flow'],
             )),
@@ -96,7 +95,7 @@ final class CommitCheckCommandTest extends TestCase
             $output,
         );
 
-        $cmd->run(new Arguments('commit-check', [], ['BILL-22 Update invoice']));
+        $cmd->run(new Arguments([], ['BILL-22 Update invoice']));
 
         self::assertStringContainsString(
             'Commit must start with',
