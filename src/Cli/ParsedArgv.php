@@ -19,11 +19,18 @@ final readonly class ParsedArgv
     public function __construct(private array $argv) {}
 
     /**
-     * Returns parsed arguments.
+     * Returns the command name (first non-option argument).
+     */
+    public function command(): string
+    {
+        return $this->argv[1] ?? '';
+    }
+
+    /**
+     * Returns parsed arguments (without the command).
      */
     public function arguments(): Arguments
     {
-        $command = $this->argv[1] ?? '';
         $options = [];
         $positionals = [];
 
@@ -44,6 +51,6 @@ final readonly class ParsedArgv
             }
         }
 
-        return new Arguments($command, $options, $positionals);
+        return new Arguments($options, $positionals);
     }
 }
