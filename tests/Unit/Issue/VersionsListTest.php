@@ -43,7 +43,7 @@ final class VersionsListTest extends TestCase
     }
 
     #[Test]
-    public function throwsWhenNoVersionsFound(): void
+    public function throwsWhenNoMatchingVersions(): void
     {
         $list = new VersionsList(
             new FakeHttp([

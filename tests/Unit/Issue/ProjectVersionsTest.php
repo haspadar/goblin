@@ -18,6 +18,7 @@ final class ProjectVersionsTest extends TestCase
             'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name&startAt=0' => [
                 'values' => [
                     ['name' => 'PLAT 2.1.0'],
+                    ['name' => 'PLAT 2.10.0'],
                     ['name' => 'PLAT 1.3.0'],
                     ['name' => 'PLAT 2.0.1'],
                 ],
@@ -25,7 +26,7 @@ final class ProjectVersionsTest extends TestCase
         ]);
 
         self::assertSame(
-            ['PLAT 1.3.0', 'PLAT 2.0.1', 'PLAT 2.1.0'],
+            ['PLAT 1.3.0', 'PLAT 2.0.1', 'PLAT 2.1.0', 'PLAT 2.10.0'],
             (new ProjectVersions($http, 'PLAT'))->names(),
             'versions must be sorted by semver',
         );
