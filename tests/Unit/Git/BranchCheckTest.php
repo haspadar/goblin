@@ -59,7 +59,7 @@ final class BranchCheckTest extends TestCase
                         'fixVersions' => [['name' => 'MSP 14.0.0']],
                     ],
                 ],
-                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name' => [
+                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
                         ['name' => 'MSP 14.0.0', 'released' => false],
                         ['name' => 'MSP 14.0.1', 'released' => false],
@@ -89,7 +89,7 @@ final class BranchCheckTest extends TestCase
                         'fixVersions' => [['name' => 'CRS 10.0.0']],
                     ],
                 ],
-                'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name' => [
+                'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
                         ['name' => 'CRS 10.0.0', 'released' => false],
                         ['name' => 'CRS 10.0.1', 'released' => false],
@@ -183,7 +183,7 @@ final class BranchCheckTest extends TestCase
                         'fixVersions' => [['name' => 'QA 8.0.0']],
                     ],
                 ],
-                'GET /rest/api/3/project/QA/version?status=unreleased&orderBy=name' => [
+                'GET /rest/api/3/project/QA/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
                         'invalid-string',
                         ['name' => 'QA 8.0.0', 'released' => false],

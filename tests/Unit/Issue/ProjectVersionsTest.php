@@ -15,7 +15,7 @@ final class ProjectVersionsTest extends TestCase
     public function returnsMatchingVersionsSortedBySemver(): void
     {
         $http = new FakeHttp([
-            'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name' => [
+            'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name&startAt=0' => [
                 'values' => [
                     ['name' => 'PLAT 2.1.0'],
                     ['name' => 'PLAT 1.3.0'],
@@ -35,7 +35,7 @@ final class ProjectVersionsTest extends TestCase
     public function filtersOutNonMatchingVersions(): void
     {
         $http = new FakeHttp([
-            'GET /rest/api/3/project/OPS/version?status=unreleased&orderBy=name' => [
+            'GET /rest/api/3/project/OPS/version?status=unreleased&orderBy=name&startAt=0' => [
                 'values' => [
                     ['name' => 'OPS 3.0.0'],
                     ['name' => 'Sprint 42'],
@@ -56,7 +56,7 @@ final class ProjectVersionsTest extends TestCase
     public function returnsEmptyListWhenNoVersionsMatch(): void
     {
         $http = new FakeHttp([
-            'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name' => [
+            'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name&startAt=0' => [
                 'values' => [
                     ['name' => 'Backlog'],
                 ],
@@ -71,10 +71,37 @@ final class ProjectVersionsTest extends TestCase
     }
 
     #[Test]
+    public function collectsVersionsAcrossPages(): void
+    {
+        $http = new FakeHttp([
+            'GET /rest/api/3/project/NAV/version?status=unreleased&orderBy=name&startAt=0' => [
+                'values' => [
+                    ['name' => 'NAV 1.0.0'],
+                ],
+                'maxResults' => 1,
+                'isLast' => false,
+            ],
+            'GET /rest/api/3/project/NAV/version?status=unreleased&orderBy=name&startAt=1' => [
+                'values' => [
+                    ['name' => 'NAV 2.0.0'],
+                ],
+                'maxResults' => 1,
+                'isLast' => true,
+            ],
+        ]);
+
+        self::assertSame(
+            ['NAV 1.0.0', 'NAV 2.0.0'],
+            (new ProjectVersions($http, 'NAV'))->names(),
+            'versions from multiple pages must be merged',
+        );
+    }
+
+    #[Test]
     public function skipsNonArrayEntries(): void
     {
         $http = new FakeHttp([
-            'GET /rest/api/3/project/BEAM/version?status=unreleased&orderBy=name' => [
+            'GET /rest/api/3/project/BEAM/version?status=unreleased&orderBy=name&startAt=0' => [
                 'values' => [
                     'not-an-array',
                     ['name' => 'BEAM 1.0.0'],

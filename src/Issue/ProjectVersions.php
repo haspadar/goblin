@@ -25,19 +25,13 @@ final readonly class ProjectVersions
      */
     public function names(): array
     {
-        $response = $this->http->json(
-            'GET',
-            "/rest/api/3/project/{$this->project}/version?status=unreleased&orderBy=name",
-        );
-
-        /** @psalm-var mixed $allVersions */
-        $allVersions = $response['values'] ?? [];
+        $allVersions = $this->fetchAllPages();
 
         $result = [];
         $pattern = '/^' . preg_quote($this->project, '/') . '\s+\d+\.\d+\.\d+$/';
 
         /** @psalm-var mixed $version */
-        foreach (is_array($allVersions) ? $allVersions : [] as $version) {
+        foreach ($allVersions as $version) {
             if (!is_array($version)) {
                 continue;
             }
@@ -53,5 +47,61 @@ final readonly class ProjectVersions
         usort($result, static fn(string $a, string $b): int => version_compare($a, $b));
 
         return $result;
+    }
+
+    /**
+     * Fetches all pages of unreleased versions from Jira API.
+     *
+     * @throws GoblinException
+     * @return list<mixed>
+     */
+    private function fetchAllPages(): array
+    {
+        $startAt = 0;
+        $allVersions = [];
+
+        do {
+            $response = $this->fetchPage($startAt);
+
+            /** @psalm-var mixed $values */
+            $values = $response['values'] ?? [];
+            $allVersions = array_merge($allVersions, is_array($values) ? $values : []);
+
+            /** @psalm-var mixed $isLast */
+            $isLast = $response['isLast'] ?? true;
+            $startAt += $this->pageSize($response);
+        } while ($isLast !== true);
+
+        /** @psalm-var list<mixed> */
+        return $allVersions;
+    }
+
+    /**
+     * Fetches a single page of versions.
+     *
+     * @throws GoblinException
+     * @return array<string, mixed>
+     */
+    private function fetchPage(int $startAt): array
+    {
+        return $this->http->json(
+            'GET',
+            "/rest/api/3/project/{$this->project}/version?status=unreleased&orderBy=name&startAt={$startAt}",
+        );
+    }
+
+    /**
+     * Extracts page size from response.
+     *
+     * @param array<string, mixed> $response
+     */
+    private function pageSize(array $response): int
+    {
+        /** @psalm-var mixed $maxResults */
+        $maxResults = $response['maxResults'] ?? 50;
+
+        return is_int($maxResults)
+            ? $maxResults
+            : 50;
     }
 }
