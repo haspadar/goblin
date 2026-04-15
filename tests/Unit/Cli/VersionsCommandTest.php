@@ -23,9 +23,11 @@ final class VersionsCommandTest extends TestCase
         $output = new FakeOutput();
         $cmd = new VersionsCommand(
             new FakeHttp([
-                'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'PLAT 3.0.0'],
-                    ['name' => 'PLAT 3.1.0'],
+                'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'PLAT 3.0.0'],
+                        ['name' => 'PLAT 3.1.0'],
+                    ],
                 ],
             ]),
             new ProjectKey('PLAT', new FakeGit('main'), $this->config()),
@@ -44,8 +46,10 @@ final class VersionsCommandTest extends TestCase
         $output = new FakeOutput();
         $cmd = new VersionsCommand(
             new FakeHttp([
-                'GET /rest/api/3/project/BEAM/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'BEAM 2.0.0'],
+                'GET /rest/api/3/project/BEAM/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'BEAM 2.0.0'],
+                    ],
                 ],
             ]),
             new ProjectKey('BEAM', new FakeGit('main'), $this->config()),
@@ -64,8 +68,10 @@ final class VersionsCommandTest extends TestCase
         $output = new FakeOutput();
         $cmd = new VersionsCommand(
             new FakeHttp([
-                'GET /rest/api/3/project/OPS/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'OPS 1.0.0'],
+                'GET /rest/api/3/project/OPS/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'OPS 1.0.0'],
+                    ],
                 ],
             ]),
             new ProjectKey('OPS', new FakeGit('main'), $this->config()),
@@ -83,8 +89,10 @@ final class VersionsCommandTest extends TestCase
     {
         $cmd = new VersionsCommand(
             new FakeHttp([
-                'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'Sprint 99'],
+                'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'Sprint 99'],
+                    ],
                 ],
             ]),
             new ProjectKey('CORE', new FakeGit('main'), $this->config()),
