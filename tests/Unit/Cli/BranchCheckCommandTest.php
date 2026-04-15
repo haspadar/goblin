@@ -38,22 +38,30 @@ final class BranchCheckCommandTest extends TestCase
     public function throwsForWrongBaseBranch(): void
     {
         $cmd = new BranchCheckCommand(
-            new FakeGit('PROJ-123-feature', 'dev'),
+            new FakeGit('PROJ-123-feature', 'stage'),
             new FakeHttp([
                 'GET /rest/api/3/issue/PROJ-123' => [
                     'fields' => [
                         'fixVersions' => [
-                            ['name' => 'PROJ 2.0.0'],
+                            ['name' => 'PROJ 2.0.1'],
                         ],
                     ],
                 ],
                 'GET /rest/api/3/project/PROJ/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [['name' => 'PROJ 2.0.0']],
+                    'values' => [
+                        ['name' => 'PROJ 2.0.0'],
+                        ['name' => 'PROJ 2.0.1'],
+                    ],
                 ],
             ]),
             new FakeConfig([
                 'protected-branches' => ['main'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                    'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+                    'default' => 'dev',
+                ],
             ]),
         );
 

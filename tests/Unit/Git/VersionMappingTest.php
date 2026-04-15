@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace Goblin\Tests\Unit\Git;
 
-use Goblin\Git\VersionMapping;
+use Goblin\Git\BranchRules;
 use Goblin\GoblinException;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -12,96 +12,115 @@ use PHPUnit\Framework\TestCase;
 final class VersionMappingTest extends TestCase
 {
     #[Test]
-    public function mapsAllToMasterWhenNoBetas(): void
+    public function mapsToDefaultWhenNoRulesMatch(): void
     {
-        $mapping = new VersionMapping(['PROJ 14.0.0', 'PROJ 15.0.0']);
+        $rules = new BranchRules(
+            ['PROJ 14.0.0', 'PROJ 15.0.0'],
+            ['default' => 'dev'],
+        );
 
         self::assertSame(
-            'master',
-            $mapping->branchFor('PROJ 14.0.0'),
-            'without betas all versions must map to master',
+            'dev',
+            $rules->branchFor('PROJ 14.0.0'),
+            'unmatched versions must map to default branch',
+        );
+    }
+
+    #[Test]
+    public function mapsToDefaultWhenNoBetaMatches(): void
+    {
+        $rules = new BranchRules(
+            ['PROJ 14.0.0', 'PROJ 15.0.0'],
+            $this->rules(),
+        );
+
+        self::assertSame(
+            'dev',
+            $rules->branchFor('PROJ 14.0.0'),
+            'without beta matches versions must fall through to default',
         );
     }
 
     #[Test]
     public function mapsBetaToBeta(): void
     {
-        $mapping = new VersionMapping(['PROJ 14.0.0', 'PROJ 14.0.1', 'PROJ 15.0.0']);
+        $rules = new BranchRules(
+            ['PROJ 14.0.0', 'PROJ 14.0.1', 'PROJ 15.0.0'],
+            $this->rules(),
+        );
 
         self::assertSame(
             'beta',
-            $mapping->branchFor('PROJ 14.0.1'),
+            $rules->branchFor('PROJ 14.0.1'),
             'X.Y.1 version must map to beta',
         );
     }
 
     #[Test]
-    public function mapsAboveBetaToDev(): void
+    public function mapsRemainingToDefault(): void
     {
-        $mapping = new VersionMapping(['PROJ 14.0.0', 'PROJ 14.0.1', 'PROJ 15.0.0']);
+        $rules = new BranchRules(
+            ['PROJ 14.0.0', 'PROJ 14.0.1', 'PROJ 15.0.0'],
+            $this->rules(),
+        );
 
         self::assertSame(
             'dev',
-            $mapping->branchFor('PROJ 15.0.0'),
-            'version above beta must map to dev',
+            $rules->branchFor('PROJ 15.0.0'),
+            'version not matching any rule must map to default',
         );
     }
 
     #[Test]
-    public function mapsBelowBetaToMaster(): void
+    public function mapsStageByTemplate(): void
     {
-        $mapping = new VersionMapping(['PROJ 14.0.0', 'PROJ 14.0.1', 'PROJ 15.0.0']);
-
-        self::assertSame(
-            'master',
-            $mapping->branchFor('PROJ 14.0.0'),
-            'version below beta must map to master',
+        $rules = new BranchRules(
+            ['PROJ 14.0.0', 'PROJ 14.0.1', 'PROJ 14.1.0', 'PROJ 15.0.0'],
+            $this->rules(),
         );
-    }
-
-    #[Test]
-    public function mapsStageToStageWithTwoBetas(): void
-    {
-        $mapping = new VersionMapping([
-            'PROJ 14.0.0',
-            'PROJ 14.0.1',
-            'PROJ 15.0.0',
-            'PROJ 15.0.1',
-        ]);
 
         self::assertSame(
             'stage',
-            $mapping->branchFor('PROJ 15.0.0'),
-            'stage version (X.Y.0 of latest beta) must map to stage',
+            $rules->branchFor('PROJ 14.1.0'),
+            'version matching stage template must map to stage',
         );
     }
 
     #[Test]
-    public function mapsAboveStageToDevWithTwoBetas(): void
+    public function picksMaxBetaByDefault(): void
     {
-        $mapping = new VersionMapping([
-            'PROJ 14.0.0',
-            'PROJ 14.0.1',
-            'PROJ 15.0.0',
-            'PROJ 15.0.1',
-            'PROJ 16.0.0',
-        ]);
+        $rules = new BranchRules(
+            ['PROJ 14.0.1', 'PROJ 15.0.1', 'PROJ 16.0.0'],
+            $this->rules(),
+        );
 
         self::assertSame(
-            'dev',
-            $mapping->branchFor('PROJ 16.0.0'),
-            'version above stage must map to dev in multi-beta scenario',
+            'beta',
+            $rules->branchFor('PROJ 15.0.1'),
+            'sort desc must pick maximum beta version',
         );
     }
 
     #[Test]
     public function throwsForUnknownVersion(): void
     {
-        $mapping = new VersionMapping(['PROJ 14.0.0']);
+        $rules = new BranchRules(['PROJ 14.0.0'], $this->rules());
 
         $this->expectException(GoblinException::class);
         $this->expectExceptionMessage('not found among active releases');
 
-        $mapping->branchFor('PROJ 99.0.0');
+        $rules->branchFor('PROJ 99.0.0');
+    }
+
+    /**
+     * @return array<string, mixed>
+     */
+    private function rules(): array
+    {
+        return [
+            'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+            'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+            'default' => 'dev',
+        ];
     }
 }

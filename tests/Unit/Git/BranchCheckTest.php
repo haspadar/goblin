@@ -52,11 +52,11 @@ final class BranchCheckTest extends TestCase
     public function passesWhenParentMatchesExpected(): void
     {
         $check = new BranchCheck(
-            new FakeGit('MSP-42-login-page', 'master'),
+            new FakeGit('MSP-42-login-page', 'beta'),
             new FakeHttp([
                 'GET /rest/api/3/issue/MSP-42' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'MSP 14.0.0']],
+                        'fixVersions' => [['name' => 'MSP 14.0.1']],
                     ],
                 ],
                 'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
@@ -70,6 +70,11 @@ final class BranchCheckTest extends TestCase
             new FakeConfig([
                 'protected-branches' => ['main'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                    'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+                    'default' => 'dev',
+                ],
             ]),
         );
 
@@ -82,11 +87,11 @@ final class BranchCheckTest extends TestCase
     public function throwsWhenParentDiffers(): void
     {
         $check = new BranchCheck(
-            new FakeGit('CRS-99-payment', 'dev'),
+            new FakeGit('CRS-99-payment', 'stage'),
             new FakeHttp([
                 'GET /rest/api/3/issue/CRS-99' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'CRS 10.0.0']],
+                        'fixVersions' => [['name' => 'CRS 10.0.1']],
                     ],
                 ],
                 'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name&startAt=0' => [
@@ -99,11 +104,16 @@ final class BranchCheckTest extends TestCase
             new FakeConfig([
                 'protected-branches' => ['main'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                    'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+                    'default' => 'dev',
+                ],
             ]),
         );
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage("requires base 'master', but branch was created from 'dev'");
+        $this->expectExceptionMessage("requires base 'beta', but branch was created from 'stage'");
 
         $check->validate();
     }
@@ -176,7 +186,7 @@ final class BranchCheckTest extends TestCase
     public function skipsNonArrayVersionEntries(): void
     {
         $check = new BranchCheck(
-            new FakeGit('QA-3-smoke', 'master'),
+            new FakeGit('QA-3-smoke', 'dev'),
             new FakeHttp([
                 'GET /rest/api/3/issue/QA-3' => [
                     'fields' => [
@@ -194,6 +204,11 @@ final class BranchCheckTest extends TestCase
             new FakeConfig([
                 'protected-branches' => ['main'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                    'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+                    'default' => 'dev',
+                ],
             ]),
         );
 
