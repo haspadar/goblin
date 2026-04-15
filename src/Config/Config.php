@@ -34,4 +34,12 @@ interface Config
      * @return list<string>
      */
     public function values(string $name): array;
+
+    /**
+     * Returns a nested associative array by key.
+     *
+     * @throws GoblinException
+     * @return array<string, mixed>
+     */
+    public function map(string $name): array;
 }
