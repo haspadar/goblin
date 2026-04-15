@@ -13,7 +13,7 @@ use Goblin\GoblinException;
 final readonly class FakeConfig implements Config
 {
     /**
-     * @param array<string, string|list<string>> $data
+     * @param array<string, string|list<string>|array<string, mixed>> $data
      */
     public function __construct(
         private array $data,
@@ -54,5 +54,21 @@ final readonly class FakeConfig implements Config
         }
 
         return array_values($value);
+    }
+
+    /** @return array<string, mixed> */
+    public function map(string $name): array
+    {
+        if (!$this->has($name)) {
+            throw new GoblinException("Missing config key: {$name}");
+        }
+
+        $value = $this->data[$name];
+
+        if (!is_array($value)) {
+            throw new GoblinException("Config key \"{$name}\" is not a map, use value()");
+        }
+
+        return $value;
     }
 }
