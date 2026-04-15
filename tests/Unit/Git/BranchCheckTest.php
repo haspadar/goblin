@@ -49,21 +49,21 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
-    public function passesWhenParentMatchesExpected(): void
+    public function passesWhenParentMatchesBetaRule(): void
     {
         $check = new BranchCheck(
-            new FakeGit('MSP-42-login-page', 'beta'),
+            new FakeGit('SHOP-42-login-page', 'beta'),
             new FakeHttp([
-                'GET /rest/api/3/issue/MSP-42' => [
+                'GET /rest/api/3/issue/SHOP-42' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'MSP 14.0.1']],
+                        'fixVersions' => [['name' => 'SHOP 14.0.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
+                'GET /rest/api/3/project/SHOP/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
-                        ['name' => 'MSP 14.0.0', 'released' => false],
-                        ['name' => 'MSP 14.0.1', 'released' => false],
-                        ['name' => 'MSP 15.0.0', 'released' => false],
+                        ['name' => 'SHOP 14.0.0', 'released' => false],
+                        ['name' => 'SHOP 14.0.1', 'released' => false],
+                        ['name' => 'SHOP 15.0.0', 'released' => false],
                     ],
                 ],
             ]),
@@ -87,17 +87,17 @@ final class BranchCheckTest extends TestCase
     public function throwsWhenParentDiffers(): void
     {
         $check = new BranchCheck(
-            new FakeGit('CRS-99-payment', 'stage'),
+            new FakeGit('PAY-99-payment', 'stage'),
             new FakeHttp([
-                'GET /rest/api/3/issue/CRS-99' => [
+                'GET /rest/api/3/issue/PAY-99' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'CRS 10.0.1']],
+                        'fixVersions' => [['name' => 'PAY 10.0.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name&startAt=0' => [
+                'GET /rest/api/3/project/PAY/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
-                        ['name' => 'CRS 10.0.0', 'released' => false],
-                        ['name' => 'CRS 10.0.1', 'released' => false],
+                        ['name' => 'PAY 10.0.0', 'released' => false],
+                        ['name' => 'PAY 10.0.1', 'released' => false],
                     ],
                 ],
             ]),
@@ -122,9 +122,9 @@ final class BranchCheckTest extends TestCase
     public function throwsWhenNoFixVersion(): void
     {
         $check = new BranchCheck(
-            new FakeGit('OPS-7-deploy', 'main'),
+            new FakeGit('INFRA-7-deploy', 'main'),
             new FakeHttp([
-                'GET /rest/api/3/issue/OPS-7' => [
+                'GET /rest/api/3/issue/INFRA-7' => [
                     'fields' => ['fixVersions' => []],
                 ],
             ]),
@@ -144,7 +144,7 @@ final class BranchCheckTest extends TestCase
     public function throwsOnInvalidProjectRegex(): void
     {
         $check = new BranchCheck(
-            new FakeGit('PROJ-1-task', 'main'),
+            new FakeGit('CORE-1-task', 'main'),
             new FakeHttp([]),
             new FakeConfig([
                 'protected-branches' => ['main'],
@@ -162,9 +162,9 @@ final class BranchCheckTest extends TestCase
     public function throwsWhenFixVersionNameIsNotString(): void
     {
         $check = new BranchCheck(
-            new FakeGit('DEV-5-api', 'master'),
+            new FakeGit('HUB-5-api', 'master'),
             new FakeHttp([
-                'GET /rest/api/3/issue/DEV-5' => [
+                'GET /rest/api/3/issue/HUB-5' => [
                     'fields' => [
                         'fixVersions' => [['id' => '999']],
                     ],
@@ -186,18 +186,18 @@ final class BranchCheckTest extends TestCase
     public function skipsNonArrayVersionEntries(): void
     {
         $check = new BranchCheck(
-            new FakeGit('QA-3-smoke', 'dev'),
+            new FakeGit('DATA-3-smoke', 'dev'),
             new FakeHttp([
-                'GET /rest/api/3/issue/QA-3' => [
+                'GET /rest/api/3/issue/DATA-3' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'QA 8.0.0']],
+                        'fixVersions' => [['name' => 'DATA 8.0.0']],
                     ],
                 ],
-                'GET /rest/api/3/project/QA/version?status=unreleased&orderBy=name&startAt=0' => [
+                'GET /rest/api/3/project/DATA/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
                         'invalid-string',
-                        ['name' => 'QA 8.0.0', 'released' => false],
-                        ['name' => 'QA 8.0.1', 'released' => false],
+                        ['name' => 'DATA 8.0.0', 'released' => false],
+                        ['name' => 'DATA 8.0.1', 'released' => false],
                     ],
                 ],
             ]),
