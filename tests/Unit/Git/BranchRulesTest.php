@@ -372,4 +372,29 @@ final class BranchRulesTest extends TestCase
             'non-string default must fall back to dev',
         );
     }
+
+    #[Test]
+    public function neverProducesMasterWithStandardRules(): void
+    {
+        $versions = ['DOCK 3.0.0', 'DOCK 3.0.1', 'DOCK 3.1.0', 'DOCK 4.0.0'];
+        $rules = new BranchRules(
+            $versions,
+            [
+                'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+                'default' => 'dev',
+            ],
+        );
+
+        $branches = array_map(
+            static fn(string $v): string => $rules->branchFor($v),
+            $versions,
+        );
+
+        self::assertNotContains(
+            'master',
+            $branches,
+            'standard rules must never produce master branch',
+        );
+    }
 }
