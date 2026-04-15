@@ -22,6 +22,7 @@ final class VersionsListTest extends TestCase
                 ],
             ]),
             'PLAT',
+            [],
         );
 
         self::assertSame('PLAT 3.0.0', $list->pairs()[0]['version'], 'pair must contain version name');
@@ -37,9 +38,10 @@ final class VersionsListTest extends TestCase
                 ],
             ]),
             'PLAT',
+            [],
         );
 
-        self::assertSame('master', $list->pairs()[0]['branch'], 'single version must map to master');
+        self::assertSame('dev', $list->pairs()[0]['branch'], 'single version without rules must map to dev');
     }
 
     #[Test]
@@ -52,6 +54,7 @@ final class VersionsListTest extends TestCase
                 ],
             ]),
             'CORE',
+            [],
         );
 
         $this->expectException(GoblinException::class);

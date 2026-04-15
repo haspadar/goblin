@@ -1,4 +1,4 @@
 # Piqule configuration. All available keys and their defaults are in .piqule/config.yaml.
 override:
     ci.pr.max_lines_changed: 700
-    phpmetrics.coupling.max_afferent: 20
+    phpmetrics.coupling.max_afferent: 19

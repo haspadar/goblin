@@ -7,9 +7,7 @@ namespace Goblin\Tests\Unit\Cli;
 use Goblin\Cli\Arguments;
 use Goblin\Cli\Command\VersionsCommand;
 use Goblin\GoblinException;
-use Goblin\Issue\ProjectKey;
-use Goblin\Tests\Fake\FakeConfig;
-use Goblin\Tests\Fake\FakeGit;
+use Goblin\Issue\VersionsList;
 use Goblin\Tests\Fake\FakeHttp;
 use Goblin\Tests\Fake\FakeOutput;
 use PHPUnit\Framework\Attributes\Test;
@@ -22,15 +20,18 @@ final class VersionsCommandTest extends TestCase
     {
         $output = new FakeOutput();
         $cmd = new VersionsCommand(
-            new FakeHttp([
-                'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'PLAT 3.0.0'],
-                        ['name' => 'PLAT 3.1.0'],
+            new VersionsList(
+                new FakeHttp([
+                    'GET /rest/api/3/project/PLAT/version?status=unreleased&orderBy=name&startAt=0' => [
+                        'values' => [
+                            ['name' => 'PLAT 3.0.0'],
+                            ['name' => 'PLAT 3.1.0'],
+                        ],
                     ],
-                ],
-            ]),
-            new ProjectKey('PLAT', new FakeGit('main'), $this->config()),
+                ]),
+                'PLAT',
+                [],
+            ),
             $output,
         );
 
@@ -45,20 +46,23 @@ final class VersionsCommandTest extends TestCase
     {
         $output = new FakeOutput();
         $cmd = new VersionsCommand(
-            new FakeHttp([
-                'GET /rest/api/3/project/BEAM/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'BEAM 2.0.0'],
+            new VersionsList(
+                new FakeHttp([
+                    'GET /rest/api/3/project/BEAM/version?status=unreleased&orderBy=name&startAt=0' => [
+                        'values' => [
+                            ['name' => 'BEAM 2.0.0'],
+                        ],
                     ],
-                ],
-            ]),
-            new ProjectKey('BEAM', new FakeGit('main'), $this->config()),
+                ]),
+                'BEAM',
+                [],
+            ),
             $output,
         );
 
         $cmd->run(new Arguments(['verbose' => true], []));
 
-        self::assertStringContainsString('BEAM', $output->muted[0], 'verbose must show project name');
+        self::assertStringContainsString('Versions:', $output->muted[0], 'verbose must show version count');
         self::assertCount(1, $output->successes, 'verbose must show done message');
     }
 
@@ -67,14 +71,17 @@ final class VersionsCommandTest extends TestCase
     {
         $output = new FakeOutput();
         $cmd = new VersionsCommand(
-            new FakeHttp([
-                'GET /rest/api/3/project/OPS/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'OPS 1.0.0'],
+            new VersionsList(
+                new FakeHttp([
+                    'GET /rest/api/3/project/OPS/version?status=unreleased&orderBy=name&startAt=0' => [
+                        'values' => [
+                            ['name' => 'OPS 1.0.0'],
+                        ],
                     ],
-                ],
-            ]),
-            new ProjectKey('OPS', new FakeGit('main'), $this->config()),
+                ]),
+                'OPS',
+                [],
+            ),
             $output,
         );
 
@@ -88,14 +95,17 @@ final class VersionsCommandTest extends TestCase
     public function throwsWhenNoVersionsFound(): void
     {
         $cmd = new VersionsCommand(
-            new FakeHttp([
-                'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'Sprint 99'],
+            new VersionsList(
+                new FakeHttp([
+                    'GET /rest/api/3/project/CORE/version?status=unreleased&orderBy=name&startAt=0' => [
+                        'values' => [
+                            ['name' => 'Sprint 99'],
+                        ],
                     ],
-                ],
-            ]),
-            new ProjectKey('CORE', new FakeGit('main'), $this->config()),
+                ]),
+                'CORE',
+                [],
+            ),
             new FakeOutput(),
         );
 
@@ -103,10 +113,5 @@ final class VersionsCommandTest extends TestCase
         $this->expectExceptionMessage('No unreleased versions');
 
         $cmd->run(new Arguments([], []));
-    }
-
-    private function config(): FakeConfig
-    {
-        return new FakeConfig(['project-regex' => '/^([A-Z]+)-\d+/']);
     }
 }
