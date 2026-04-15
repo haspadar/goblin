@@ -19,6 +19,8 @@ final readonly class InstallCommand implements Command
 
     private const string ROOT_LINE = 'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0';
 
+    private const string GOBLIN_LINE = 'if [ -f "$ROOT/bin/branch-check" ]; then GOBLIN="$ROOT"; elif [ -f "$ROOT/../goblin/bin/branch-check" ]; then GOBLIN="$ROOT/../goblin"; else echo "Goblin binaries not found in $ROOT/bin or $ROOT/../goblin/bin" >&2; exit 1; fi';
+
     /**
      * Stores output channel.
      */
@@ -82,21 +84,24 @@ final readonly class InstallCommand implements Command
                 self::SHEBANG,
                 'set -e',
                 self::ROOT_LINE,
-                'php "$ROOT/bin/branch-check"',
-                'php "$ROOT/bin/commit-check" "$1"',
+                self::GOBLIN_LINE,
+                'php "$GOBLIN/bin/branch-check"',
+                'php "$GOBLIN/bin/commit-check" "$1"',
                 '',
             ]),
             InstallHook::PrePush => implode("\n", [
                 self::SHEBANG,
                 self::ROOT_LINE,
-                'exec php "$ROOT/bin/docker-test" --parallel',
+                self::GOBLIN_LINE,
+                'exec php "$GOBLIN/bin/docker-test" --parallel',
                 '',
             ]),
             InstallHook::PostCheckout => implode("\n", [
                 self::SHEBANG,
                 '[ "$3" != "1" ] && exit 0',
                 self::ROOT_LINE,
-                'exec php "$ROOT/bin/branch-check"',
+                self::GOBLIN_LINE,
+                'exec php "$GOBLIN/bin/branch-check"',
                 '',
             ]),
         };
