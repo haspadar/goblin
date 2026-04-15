@@ -38,6 +38,11 @@ php bin/goblin issue PROJ-1234 raw          # raw JSON payload
 php bin/goblin issue 1234                   # short key (project from branch)
 php bin/goblin daily                        # daily activity report
 
+# Jira releases
+php bin/jira-releases PLAT                        # list unreleased versions
+php bin/jira-releases                             # project from current branch
+php bin/jira-releases PLAT --verbose              # extra details
+
 # Git validation (standalone scripts, called by hooks)
 php bin/branch-check                              # validate current branch
 php bin/commit-check .git/COMMIT_EDITMSG          # validate from file
