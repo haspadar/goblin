@@ -19,7 +19,7 @@ final readonly class InstallCommand implements Command
 
     private const string ROOT_LINE = 'ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0';
 
-    private const string GOBLIN_LINE = 'if [ -f "$ROOT/bin/branch-check" ]; then GOBLIN="$ROOT"; else GOBLIN="$ROOT/../goblin"; fi';
+    private const string GOBLIN_LINE = 'if [ -f "$ROOT/bin/branch-check" ]; then GOBLIN="$ROOT"; elif [ -f "$ROOT/../goblin/bin/branch-check" ]; then GOBLIN="$ROOT/../goblin"; else echo "Goblin binaries not found in $ROOT/bin or $ROOT/../goblin/bin" >&2; exit 1; fi';
 
     /**
      * Stores output channel.
