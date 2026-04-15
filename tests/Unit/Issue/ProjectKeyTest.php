@@ -34,6 +34,16 @@ final class ProjectKeyTest extends TestCase
     }
 
     #[Test]
+    public function trimsAndUppercasesExplicitArgument(): void
+    {
+        self::assertSame(
+            'CORE',
+            (new ProjectKey('  core  ', new FakeGit('main'), $this->config()))->value(),
+            'explicit argument must be trimmed and uppercased',
+        );
+    }
+
+    #[Test]
     public function extractsProjectFromBranch(): void
     {
         self::assertSame(

@@ -52,12 +52,16 @@ final readonly class ProjectKey
             throw new GoblinException("Invalid project regex: {$regex}");
         }
 
-        if ($result !== 1 || !array_key_exists(1, $matches)) {
+        $project = $result === 1 && array_key_exists(1, $matches)
+            ? trim($matches[1])
+            : '';
+
+        if ($project === '') {
             throw new GoblinException(
                 "Project not specified and cannot be detected from branch '{$branch}'",
             );
         }
 
-        return strtoupper($matches[1]);
+        return strtoupper($project);
     }
 }
