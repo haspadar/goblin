@@ -20,7 +20,11 @@ final readonly class VersionsList
      *
      * @param array<string, mixed> $rules
      */
-    public function __construct(private Http $http, private string $project, private array $rules = []) {}
+    public function __construct(
+        private Http $http,
+        private string $project,
+        private array $rules = [],
+    ) {}
 
     /**
      * Returns version-to-branch pairs.
