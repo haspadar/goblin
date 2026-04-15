@@ -13,6 +13,7 @@ use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
 use Goblin\Issue\ProjectKey;
+use Goblin\Issue\VersionsList;
 use Goblin\Output\JsonOutput;
 use Goblin\Output\PrefixedOutput;
 use Goblin\Output\TextOutput;
@@ -59,9 +60,13 @@ try {
     );
 
     $git = new ShellGit();
-    $project = new ProjectKey($args->positional(0), $git, $config);
+    $project = (new ProjectKey($args->positional(0), $git, $config))->value();
+    $rules = $config->has('branch-rules')
+        ? $config->map('branch-rules')
+        : [];
+    $versions = new \Goblin\Issue\VersionsList($http, $project, $rules);
 
-    $code = (new VersionsCommand($http, $project, $output))
+    $code = (new VersionsCommand($versions, $output))
         ->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);

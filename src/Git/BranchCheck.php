@@ -44,13 +44,15 @@ final readonly class BranchCheck
         $issue = new IssueFixVersion($this->http, $issueKey);
         $fixVersion = $issue->name();
         $versions = $issue->activeVersions();
-        $target = (new VersionMapping($versions))->branchFor($fixVersion);
-        $expected = $target === 'beta' ? 'master' : $target;
+        $rules = $this->config->has('branch-rules')
+            ? $this->config->map('branch-rules')
+            : [];
+        $target = (new BranchRules($versions, $rules))->branchFor($fixVersion);
         $parent = $this->git->parentBranch();
 
-        if ($parent !== $expected) {
+        if ($parent !== $target) {
             throw new GoblinException(
-                "Fix Version '{$fixVersion}' requires base '{$expected}', but branch was created from '{$parent}'",
+                "Fix Version '{$fixVersion}' requires base '{$target}', but branch was created from '{$parent}'",
             );
         }
     }

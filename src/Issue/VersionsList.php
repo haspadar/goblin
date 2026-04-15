@@ -4,19 +4,23 @@ declare(strict_types=1);
 
 namespace Goblin\Issue;
 
-use Goblin\Git\VersionMapping;
+use Goblin\Git\BranchRules;
 use Goblin\GoblinException;
 use Goblin\Http\Http;
 
 /**
  * Unreleased versions with their target branches.
+ *
+ * @psalm-api
  */
 final readonly class VersionsList
 {
     /**
-     * Stores HTTP client and project key.
+     * Stores HTTP client, project key, and branch rules.
+     *
+     * @param array<string, mixed> $rules
      */
-    public function __construct(private Http $http, private string $project) {}
+    public function __construct(private Http $http, private string $project, private array $rules) {}
 
     /**
      * Returns version-to-branch pairs.
@@ -32,7 +36,7 @@ final readonly class VersionsList
             throw new GoblinException("No unreleased versions found for project {$this->project}");
         }
 
-        $mapping = new VersionMapping($versions);
+        $mapping = new BranchRules($versions, $this->rules);
         $result = [];
 
         foreach ($versions as $version) {

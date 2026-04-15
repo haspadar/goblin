@@ -5,8 +5,6 @@ declare(strict_types=1);
 namespace Goblin\Cli\Command;
 
 use Goblin\Cli\Arguments;
-use Goblin\Http\Http;
-use Goblin\Issue\ProjectKey;
 use Goblin\Issue\VersionsList;
 use Goblin\Output\Output;
 use Override;
@@ -17,23 +15,17 @@ use Override;
 final readonly class VersionsCommand implements Command
 {
     /**
-     * Stores HTTP client, project resolver, and output.
+     * Stores versions list and output.
      */
-    public function __construct(
-        private Http $http,
-        private ProjectKey $project,
-        private Output $output,
-    ) {}
+    public function __construct(private VersionsList $versions, private Output $output) {}
 
     #[Override]
     public function run(Arguments $args): int
     {
-        $project = $this->project->value();
-        $pairs = (new VersionsList($this->http, $project))->pairs();
+        $pairs = $this->versions->pairs();
         $verbose = $args->flag('verbose');
 
         if ($verbose) {
-            $this->output->muted("Project: {$project}");
             $this->output->muted('Versions: ' . count($pairs));
         }
 

@@ -38,7 +38,7 @@ php bin/goblin issue PROJ-1234 raw          # raw JSON payload
 php bin/goblin issue 1234                   # short key (project from branch)
 php bin/goblin daily                        # daily activity report
 
-# Jira releases
+# Jira releases (version → branch mapping)
 php bin/jira-releases PLAT                        # list unreleased versions
 php bin/jira-releases                             # project from current branch
 php bin/jira-releases PLAT --verbose              # extra details
@@ -56,6 +56,24 @@ php bin/goblin mr list --state=opened       # list merge requests
 php bin/goblin mr update 123 --draft        # mark as draft
 php bin/goblin mr update 123 --ready        # mark as ready
 ```
+
+## Branch rules
+
+Version-to-branch mapping is configured via `branch-rules` in `.goblin.php`:
+
+```php
+'branch-rules' => [
+    'beta'  => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+    'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
+    'default' => 'dev',
+],
+```
+
+Rules are evaluated top-to-bottom. Each rule assigns one release to a branch:
+
+- **`match`** — regex pattern; supports `{var}` and `{var+N}` templates from earlier captures
+- **`sort`** — `desc` (default) picks max version, `asc` picks min
+- **`default`** — branch for all remaining unmatched releases
 
 ## Output
 
