@@ -47,8 +47,8 @@ final class BranchCheckCommandTest extends TestCase
                         ],
                     ],
                 ],
-                'GET /rest/api/3/project/PROJ/version?status=unreleased&orderBy=name' => [
-                    ['name' => 'PROJ 2.0.0'],
+                'GET /rest/api/3/project/PROJ/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'PROJ 2.0.0']],
                 ],
             ]),
             new FakeConfig([

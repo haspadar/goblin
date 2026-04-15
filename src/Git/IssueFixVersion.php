@@ -6,6 +6,7 @@ namespace Goblin\Git;
 
 use Goblin\GoblinException;
 use Goblin\Http\Http;
+use Goblin\Issue\ProjectVersions;
 
 /**
  * Fetches Fix Version and active versions for an issue from Jira.
@@ -57,33 +58,7 @@ final readonly class IssueFixVersion
      */
     public function activeVersions(): array
     {
-        $projectKey = $this->projectKey();
-
-        $allVersions = $this->http->json(
-            'GET',
-            "/rest/api/3/project/{$projectKey}/version?status=unreleased&orderBy=name",
-        );
-
-        $result = [];
-        $pattern = '/^' . preg_quote($projectKey, '/') . '\s+\d+\.\d+\.\d+$/';
-
-        /** @psalm-var mixed $version */
-        foreach ($allVersions as $version) {
-            if (!is_array($version)) {
-                continue;
-            }
-
-            /** @psalm-var mixed $name */
-            $name = $version['name'] ?? '';
-
-            if (is_string($name) && preg_match($pattern, $name) === 1) {
-                $result[] = $name;
-            }
-        }
-
-        usort($result, static fn(string $a, string $b): int => version_compare($a, $b));
-
-        return $result;
+        return (new ProjectVersions($this->http, $this->projectKey()))->names();
     }
 
     /**
