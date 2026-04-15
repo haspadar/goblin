@@ -58,7 +58,8 @@ final class InstallCommandTest extends TestCase
         (new WithHooksBackup())->run(function (): void {
             (new InstallCommand(new FakeOutput()))->run(new Arguments([], []));
 
-            exec('git rev-parse --show-toplevel', $lines);
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
             $dir = $lines[0] . '/.git/hooks';
 
             foreach (InstallHook::cases() as $hook) {
