@@ -10,13 +10,14 @@ use Goblin\Http\Http;
 
 /**
  * Unreleased versions with their target branches.
+ *
+ * @psalm-api
  */
 final readonly class VersionsList
 {
     /**
      * Stores HTTP client, project key, and branch rules.
      *
-     * @psalm-suppress PossiblyUnusedMethod called from bin/jira-releases
      * @param array<string, mixed> $rules
      */
     public function __construct(private Http $http, private string $project, private array $rules) {}

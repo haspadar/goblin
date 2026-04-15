@@ -40,6 +40,7 @@ final readonly class BranchRules
     /**
      * Builds release to branch mapping.
      *
+     * @throws GoblinException
      * @return array<string, string>
      */
     private function buildMap(): array

@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Goblin\Git;
 
+use Goblin\GoblinException;
+
 /**
  * Matches releases by regex pattern with variable substitution.
  */
@@ -20,6 +22,7 @@ final readonly class RegexRule
      * @param list<string> $releases
      * @param array<string, string> $assigned
      * @param array<string, string> $vars
+     * @throws GoblinException
      */
     public function match(array $releases, array $assigned, array $vars): ?string
     {
@@ -31,8 +34,10 @@ final readonly class RegexRule
 
         $matched = [];
 
+        $this->validate($regex);
+
         foreach ($releases as $release) {
-            if (!array_key_exists($release, $assigned) && @preg_match($regex, $release) === 1) {
+            if (!array_key_exists($release, $assigned) && preg_match($regex, $release) === 1) {
                 $matched[] = $release;
             }
         }
@@ -50,13 +55,20 @@ final readonly class RegexRule
      * Returns named groups captured from release.
      *
      * @param array<string, string> $vars
+     * @throws GoblinException
      * @return array<string, string>
      */
     public function vars(string $release, array $vars): array
     {
         $regex = $this->interpolate($vars);
 
-        if ($regex === '' || @preg_match($regex, $release, $m) !== 1) {
+        if ($regex === '') {
+            return [];
+        }
+
+        $this->validate($regex);
+
+        if (preg_match($regex, $release, $m) !== 1) {
             return [];
         }
 
@@ -69,6 +81,19 @@ final readonly class RegexRule
         }
 
         return $result;
+    }
+
+    /**
+     * Throws when regex pattern is invalid.
+     *
+     * @param non-empty-string $regex
+     * @throws GoblinException
+     */
+    private function validate(string $regex): void
+    {
+        if (@preg_match($regex, '') === false) {
+            throw new GoblinException("Invalid branch-rule regex: {$regex}");
+        }
     }
 
     /**
