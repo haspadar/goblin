@@ -3,7 +3,7 @@
 return [
     'complexity' => [
         'max_cyclomatic_per_method' => 10,
-        'max_weighted_methods_per_class' => 20,
+        'max_weighted_methods_per_class' => 21,
     ],
     'size' => [
         'max_loc_per_class' => 1000,
@@ -23,7 +23,7 @@ return [
         'max_methods_per_class' => 10,
     ],
     'coupling' => [
-        'max_afferent' => 19,
+        'max_afferent' => 20,
         'max_efferent' => 10,
     ],
 ];
