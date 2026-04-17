@@ -14,4 +14,5 @@ return [
     'gitlab-url' => 'https://gitlab.example.com',
     'gitlab-token' => '...',
     'container' => 'your-app',
+    'compose-service' => 'app',
 ];
