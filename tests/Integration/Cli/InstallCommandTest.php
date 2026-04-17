@@ -8,7 +8,9 @@ use Goblin\Cli\Arguments;
 use Goblin\Cli\Command\InstallCommand;
 use Goblin\Cli\InstallHook;
 use Goblin\Tests\Constraint\InstalledHooks;
+use Goblin\Tests\Constraint\NoHookFiles;
 use Goblin\Tests\Constraint\SkippedHooks;
+use Goblin\Tests\Fake\FailingInstall;
 use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeOutput;
 use Goblin\Tests\Fixture\WithHooksBackup;
@@ -94,6 +96,29 @@ final class InstallCommandTest extends TestCase
                 $prePush,
                 'pre-push must embed the resolved container name',
             );
+        });
+    }
+
+    #[Test]
+    public function failsWhenContainerCannotBeResolved(): void
+    {
+        $failed = (new WithHooksBackup())->run(
+            fn(): bool => (new FailingInstall(new InstallCommand(new FakeOutput(), new FakeConfig([]))))
+                ->failed([]),
+        );
+
+        self::assertTrue($failed, 'must throw when --container is absent and compose is missing');
+    }
+
+    #[Test]
+    public function writesNoHooksWhenContainerCannotBeResolved(): void
+    {
+        (new WithHooksBackup())->run(function (): void {
+            (new FailingInstall(new InstallCommand(new FakeOutput(), new FakeConfig([]))))
+                ->failed([]);
+            exec('git rev-parse --show-toplevel', $lines);
+
+            self::assertThat($lines[0] . '/.git/hooks', new NoHookFiles());
         });
     }
 }
