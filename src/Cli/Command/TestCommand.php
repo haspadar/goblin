@@ -27,7 +27,10 @@ final readonly class TestCommand implements Command
     #[Override]
     public function run(Arguments $args): int
     {
-        $container = $this->config->value('container');
+        $fromFlag = $args->option('container');
+        $container = $fromFlag !== ''
+            ? $fromFlag
+            : $this->config->value('container');
 
         if (!$this->docker->isRunning($container)) {
             $this->output->muted("Container '{$container}' is not running. Tests skipped.");
