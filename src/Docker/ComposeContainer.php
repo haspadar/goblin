@@ -26,13 +26,18 @@ final readonly class ComposeContainer
     public function name(): string
     {
         $path = $this->composePath();
-        $split = preg_split('/\R/', (string) file_get_contents($path));
+        $contents = @file_get_contents($path);
 
-        if ($split === false) {
-            throw new GoblinException("Cannot parse compose file: {$path}");
+        if ($contents === false) {
+            throw new GoblinException("Cannot read compose file: {$path}");
         }
 
-        return $this->readContainerName($this->significant($split), $path);
+        $split = preg_split('/\R/', $contents);
+        $lines = $split === false
+            ? []
+            : $this->significant($split);
+
+        return $this->readContainerName($lines, $path);
     }
 
     /**
@@ -61,24 +66,14 @@ final readonly class ComposeContainer
      */
     private function readContainerName(array $lines, string $path): string
     {
-        $afterServices = $this->sliceAfter($lines, '/^services:\s*$/')
-            ?? throw new GoblinException("No 'services:' block in {$path}");
+        $services = $this->servicesBlock($lines, $path);
+        $body = $this->serviceBody($services, $path);
 
-        $servicePattern = '/^(\s+)' . preg_quote($this->service, '/') . ':\s*$/';
-        $serviceTail = $this->sliceAfter($afterServices, $servicePattern)
-            ?? throw new GoblinException("Service '{$this->service}' not found in {$path}");
-
-        $indent = $serviceTail === []
-            ? 0
-            : $this->indent($serviceTail[0]);
-
-        foreach ($serviceTail as $line) {
-            if ($this->indent($line) < $indent) {
-                break;
-            }
+        foreach ($body as $line) {
+            $match = [];
 
             if (preg_match('/^\s+container_name:\s*(.+)$/', $line, $match) === 1) {
-                return trim($match[1], " \t\"'");
+                return $this->cleanValue($match[1]);
             }
         }
 
@@ -86,13 +81,52 @@ final readonly class ComposeContainer
     }
 
     /**
-     * Returns lines after the first match of $pattern, or null if no match.
+     * Returns lines that belong to the top-level services: block.
+     *
+     * @param list<string> $lines
+     * @throws GoblinException
+     * @return list<string>
+     */
+    private function servicesBlock(array $lines, string $path): array
+    {
+        $after = $this->sliceAfterMatch($lines, '/^services:\s*$/');
+
+        if ($after === null) {
+            throw new GoblinException("No 'services:' block in {$path}");
+        }
+
+        return $this->takeWhileIndented($after, 0);
+    }
+
+    /**
+     * Returns lines that form the body of the requested service, filtered to the shallowest child indent.
+     *
+     * @param list<string> $services
+     * @throws GoblinException
+     * @return list<string>
+     */
+    private function serviceBody(array $services, string $path): array
+    {
+        $pattern = '/^(\s+)' . preg_quote($this->service, '/') . ':\s*$/';
+        $parent = $this->matchIndent($services, $pattern);
+
+        if ($parent === null) {
+            throw new GoblinException("Service '{$this->service}' not found in {$path}");
+        }
+
+        $after = $this->sliceAfterMatch($services, $pattern) ?? [];
+
+        return $this->onlyAtIndent($this->takeWhileIndented($after, $parent));
+    }
+
+    /**
+     * Returns lines that come after the first match of $pattern, or null if no match.
      *
      * @param list<string> $lines
      * @param non-empty-string $pattern
      * @return list<string>|null
      */
-    private function sliceAfter(array $lines, string $pattern): ?array
+    private function sliceAfterMatch(array $lines, string $pattern): ?array
     {
         foreach ($lines as $i => $line) {
             if (preg_match($pattern, $line) === 1) {
@@ -101,6 +135,80 @@ final readonly class ComposeContainer
         }
 
         return null;
+    }
+
+    /**
+     * Returns the indent of the first line matching $pattern with a single captured leading-whitespace group, or null.
+     *
+     * @param list<string> $lines
+     * @param non-empty-string $pattern
+     */
+    private function matchIndent(array $lines, string $pattern): ?int
+    {
+        $match = [];
+
+        foreach ($lines as $line) {
+            if (preg_match($pattern, $line, $match) === 1) {
+                return strlen($match[1]);
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Returns the prefix of $lines whose indent is strictly greater than $parentIndent.
+     *
+     * @param list<string> $lines
+     * @return list<string>
+     */
+    private function takeWhileIndented(array $lines, int $parentIndent): array
+    {
+        $out = [];
+
+        foreach ($lines as $line) {
+            if ($this->indent($line) <= $parentIndent) {
+                break;
+            }
+
+            $out[] = $line;
+        }
+
+        return $out;
+    }
+
+    /**
+     * Keeps only lines at the shallowest indent of the given block.
+     *
+     * @param list<string> $lines
+     * @return list<string>
+     */
+    private function onlyAtIndent(array $lines): array
+    {
+        if ($lines === []) {
+            return [];
+        }
+
+        $target = $this->indent($lines[0]);
+        $out = [];
+
+        foreach ($lines as $line) {
+            if ($this->indent($line) === $target) {
+                $out[] = $line;
+            }
+        }
+
+        return $out;
+    }
+
+    /**
+     * Strips inline comment, surrounding quotes, and whitespace from a value.
+     */
+    private function cleanValue(string $raw): string
+    {
+        $value = preg_replace('/\s+#.*$/', '', $raw) ?? $raw;
+
+        return trim($value, " \t\"'");
     }
 
     /**

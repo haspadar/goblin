@@ -58,4 +58,52 @@ final class ComposeContainerTest extends TestCase
 
         (new ComposeContainer(__DIR__ . '/fixtures/no-container-name', 'app'))->name();
     }
+
+    #[Test]
+    public function ignoresContainerNameInsideNestedBlock(): void
+    {
+        $container = (new ComposeContainer(__DIR__ . '/fixtures/nested-container-name', 'app'))->name();
+
+        self::assertSame('real-app', $container, 'must ignore container_name nested under environment');
+    }
+
+    #[Test]
+    public function stripsInlineComment(): void
+    {
+        $container = (new ComposeContainer(__DIR__ . '/fixtures/inline-comment', 'app'))->name();
+
+        self::assertSame('commented-app', $container, 'must drop trailing YAML comment from value');
+    }
+
+    #[Test]
+    public function throwsWhenServiceBodyIsEmpty(): void
+    {
+        $this->expectException(GoblinException::class);
+
+        (new ComposeContainer(__DIR__ . '/fixtures/empty-service-body', 'app'))->name();
+    }
+
+    #[Test]
+    public function throwsWhenRequestedServiceAppearsOnlyOutsideServicesBlock(): void
+    {
+        $this->expectException(GoblinException::class);
+
+        (new ComposeContainer(__DIR__ . '/fixtures/container-name-outside-services', 'app'))->name();
+    }
+
+    #[Test]
+    public function stripsSurroundingQuotesFromValue(): void
+    {
+        $container = (new ComposeContainer(__DIR__ . '/fixtures/quoted-value', 'app'))->name();
+
+        self::assertSame('quoted-app', $container, 'must strip surrounding double quotes');
+    }
+
+    #[Test]
+    public function readsAlternativeComposeFilename(): void
+    {
+        $container = (new ComposeContainer(__DIR__ . '/fixtures/alt-filename', 'app'))->name();
+
+        self::assertSame('alt-compose-app', $container, 'must accept compose.yml alongside docker-compose.yml');
+    }
 }

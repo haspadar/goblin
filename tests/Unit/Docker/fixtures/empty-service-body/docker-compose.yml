@@ -1,0 +1,5 @@
+services:
+  app:
+  redis:
+    image: redis
+    container_name: sibling-redis
