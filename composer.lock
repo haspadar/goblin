@@ -1802,17 +1802,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/haspadar/piqule.git",
-                "reference": "ee1805c5c2a3d8a689bd7b640c2e728ff29df07e"
+                "reference": "5442c930dc01b08ece1e1ae5bd1daf45bd18e6ce"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/haspadar/piqule/zipball/ee1805c5c2a3d8a689bd7b640c2e728ff29df07e",
-                "reference": "ee1805c5c2a3d8a689bd7b640c2e728ff29df07e",
+                "url": "https://api.github.com/repos/haspadar/piqule/zipball/5442c930dc01b08ece1e1ae5bd1daf45bd18e6ce",
+                "reference": "5442c930dc01b08ece1e1ae5bd1daf45bd18e6ce",
                 "shasum": ""
             },
             "require": {
                 "friendsofphp/php-cs-fixer": "^3.91",
-                "haspadar/phpstan-rules": "^0.30.1",
+                "haspadar/phpstan-rules": ">=0.30.1 <1.0.0",
                 "infection/infection": "^0.32.0",
                 "kubawerlos/php-cs-fixer-custom-fixers": "^3.36",
                 "php": "~8.3.16 || ~8.4.3 || ~8.5.0",
@@ -1855,7 +1855,7 @@
                 "issues": "https://github.com/haspadar/piqule/issues",
                 "source": "https://github.com/haspadar/piqule/tree/main"
             },
-            "time": "2026-04-09T13:59:16+00:00"
+            "time": "2026-04-17T06:01:06+00:00"
         },
         {
             "name": "infection/abstract-testframework-adapter",
