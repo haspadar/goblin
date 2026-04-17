@@ -6,6 +6,8 @@ namespace Goblin\Cli\Command;
 
 use Goblin\Cli\Arguments;
 use Goblin\Cli\InstallHook;
+use Goblin\Config\Config;
+use Goblin\Docker\ComposeContainer;
 use Goblin\GoblinException;
 use Goblin\Output\Output;
 use Override;
@@ -21,15 +23,26 @@ final readonly class InstallCommand implements Command
 
     private const string GOBLIN_LINE = 'if [ -f "$ROOT/bin/branch-check" ]; then GOBLIN="$ROOT"; elif [ -f "$ROOT/../goblin/bin/branch-check" ]; then GOBLIN="$ROOT/../goblin"; else echo "Goblin binaries not found in $ROOT/bin or $ROOT/../goblin/bin" >&2; exit 1; fi';
 
+    private const string DEFAULT_SERVICE = 'app';
+
     /**
-     * Stores output channel.
+     * Stores output channel and configuration.
      */
-    public function __construct(private Output $output) {}
+    public function __construct(private Output $output, private Config $config) {}
 
     #[Override]
     public function run(Arguments $args): int
     {
-        $hooksDir = $this->hooksDir();
+        $root = $this->root();
+        $fromFlag = $args->option('container');
+        $container = $fromFlag !== ''
+            ? $fromFlag
+            : $this->resolveContainer($root, $args);
+        $hooksDir = $root . '/.git/hooks';
+
+        if (!is_dir($hooksDir)) {
+            throw new GoblinException("Hooks directory not found: {$hooksDir}");
+        }
 
         foreach (InstallHook::cases() as $hook) {
             $path = $hooksDir . '/' . $hook->value;
@@ -40,7 +53,7 @@ final readonly class InstallCommand implements Command
                 continue;
             }
 
-            if (file_put_contents($path, $this->script($hook)) === false) {
+            if (file_put_contents($path, $this->script($hook, $container)) === false) {
                 throw new GoblinException("Failed to write hook: {$hook->value}");
             }
 
@@ -52,11 +65,11 @@ final readonly class InstallCommand implements Command
     }
 
     /**
-     * Returns the path to .git/hooks directory.
+     * Returns the git repository root.
      *
      * @throws GoblinException
      */
-    private function hooksDir(): string
+    private function root(): string
     {
         exec('git rev-parse --show-toplevel', $lines, $code);
         $root = trim(implode("\n", $lines));
@@ -65,19 +78,41 @@ final readonly class InstallCommand implements Command
             throw new GoblinException('Not a git repository');
         }
 
-        $dir = $root . '/.git/hooks';
+        return $root;
+    }
 
-        if (!is_dir($dir)) {
-            throw new GoblinException("Hooks directory not found: {$dir}");
+    /**
+     * Resolves container name from docker-compose.yml using the configured service key.
+     *
+     * @throws GoblinException
+     */
+    private function resolveContainer(string $root, Arguments $args): string
+    {
+        return (new ComposeContainer($root, $this->service($args)))->name();
+    }
+
+    /**
+     * Returns the compose service key (flag wins, then config, then default).
+     *
+     * @throws GoblinException
+     */
+    private function service(Arguments $args): string
+    {
+        $fromFlag = $args->option('service');
+
+        if ($fromFlag !== '') {
+            return $fromFlag;
         }
 
-        return $dir;
+        return $this->config->has('compose-service')
+            ? $this->config->value('compose-service')
+            : self::DEFAULT_SERVICE;
     }
 
     /**
      * Returns the shell script for a given hook.
      */
-    private function script(InstallHook $hook): string
+    private function script(InstallHook $hook, string $container): string
     {
         return match ($hook) {
             InstallHook::CommitMsg => implode("\n", [
@@ -93,7 +128,7 @@ final readonly class InstallCommand implements Command
                 self::SHEBANG,
                 self::ROOT_LINE,
                 self::GOBLIN_LINE,
-                'exec php "$GOBLIN/bin/docker-test" --parallel',
+                'exec php "$GOBLIN/bin/docker-test" --parallel --container=' . escapeshellarg($container),
                 '',
             ]),
             InstallHook::PostCheckout => implode("\n", [

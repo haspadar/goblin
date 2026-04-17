@@ -38,20 +38,16 @@ if ($args->flag('debug')) {
     $output = new DebugOutput($output);
 }
 
-if ($command === 'install') {
-    try {
-        $code = (new InstallCommand($output))->run($args);
-    } catch (GoblinException $e) {
-        fwrite(STDERR, $e->getMessage() . PHP_EOL);
-        $code = 1;
-    }
-    exit($code);
-}
-
 $configPath = dirname(__DIR__) . '/.goblin.php';
 
 try {
     $config = new FileConfig((new ConfigFile($configPath))->data());
+
+    if ($command === 'install') {
+        $code = (new InstallCommand($output, $config))->run($args);
+        exit($code);
+    }
+
     $http = new CurlHttp(
         $config->value('jira-url'),
         $config->value('jira-user'),
