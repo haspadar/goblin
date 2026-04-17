@@ -2,4 +2,3 @@
 override:
     ci.pr.max_lines_changed: 700
     phpmetrics.coupling.max_afferent: 20
-    phpmetrics.complexity.max_weighted_methods_per_class: 21
