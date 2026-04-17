@@ -41,13 +41,15 @@ if ($args->flag('debug')) {
 $configPath = dirname(__DIR__) . '/.goblin.php';
 
 try {
-    $config = new FileConfig((new ConfigFile($configPath))->data());
-
     if ($command === 'install') {
+        $config = is_file($configPath)
+            ? new FileConfig((new ConfigFile($configPath))->data())
+            : new FileConfig([]);
         $code = (new InstallCommand($output, $config))->run($args);
         exit($code);
     }
 
+    $config = new FileConfig((new ConfigFile($configPath))->data());
     $http = new CurlHttp(
         $config->value('jira-url'),
         $config->value('jira-user'),
