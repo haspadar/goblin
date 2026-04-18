@@ -19,7 +19,7 @@ final class NoHookFiles extends Constraint
 
     protected function matches(mixed $other): bool
     {
-        if (!is_string($other)) {
+        if (!is_string($other) || !is_dir($other)) {
             return false;
         }
 
