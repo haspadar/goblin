@@ -60,22 +60,30 @@ final readonly class ComposeContainer
      */
     private function readContainerName(ComposeLines $lines, string $path): string
     {
-        $services = $lines->sliceAfter('/^services:\s*$/')
-            ?? throw new GoblinException("No 'services:' block in {$path}");
+        $services = ($lines->sliceAfter('/^services:\s*$/')
+            ?? throw new GoblinException("No 'services:' block in {$path}"))
+            ->takeNested(0);
 
         $servicePattern = '/^(\s+)' . preg_quote($this->service, '/') . ':\s*$/';
-        $serviceIndent = $services->takeNested(0)->firstCapturedIndent($servicePattern)
+        $serviceIndent = $services->atFirstIndent()->firstCapturedIndent($servicePattern)
             ?? throw new GoblinException("Service '{$this->service}' not found in {$path}");
 
-        $body = ($services->sliceAfter($servicePattern) ?? new ComposeLines([]))
+        $directPattern = '/^' . str_repeat(' ', $serviceIndent) . preg_quote($this->service, '/') . ':\s*$/';
+        $body = ($services->sliceAfter($directPattern) ?? new ComposeLines([]))
             ->takeNested($serviceIndent)
             ->atFirstIndent();
 
         foreach ($body->all() as $line) {
             $match = [];
 
-            if (preg_match('/^\s+container_name:\s*(.+)$/', $line, $match) === 1) {
-                return $this->cleanValue($match[1]);
+            if (preg_match('/^\s+container_name:\s*(.*)$/', $line, $match) === 1) {
+                $value = $this->cleanValue($match[1]);
+
+                if ($value !== '') {
+                    return $value;
+                }
+
+                break;
             }
         }
 
@@ -87,7 +95,7 @@ final readonly class ComposeContainer
      */
     private function cleanValue(string $raw): string
     {
-        $value = preg_replace('/\s+#.*$/', '', $raw) ?? $raw;
+        $value = preg_replace('/(?:^|\s)#.*$/', '', $raw) ?? $raw;
 
         return trim($value, " \t\"'");
     }

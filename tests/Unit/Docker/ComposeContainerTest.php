@@ -100,6 +100,22 @@ final class ComposeContainerTest extends TestCase
     }
 
     #[Test]
+    public function throwsWhenContainerNameIsOnlyAComment(): void
+    {
+        $this->expectException(GoblinException::class);
+
+        (new ComposeContainer(__DIR__ . '/fixtures/empty-container-name', 'app'))->name();
+    }
+
+    #[Test]
+    public function ignoresNestedKeyMatchingRequestedServiceName(): void
+    {
+        $container = (new ComposeContainer(__DIR__ . '/fixtures/nested-service-name', 'app'))->name();
+
+        self::assertSame('real-app', $container, 'must read the direct services.app block, not nested app keys');
+    }
+
+    #[Test]
     public function readsAlternativeComposeFilename(): void
     {
         $container = (new ComposeContainer(__DIR__ . '/fixtures/alt-filename', 'app'))->name();

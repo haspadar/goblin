@@ -1,0 +1,10 @@
+services:
+  web:
+    image: nginx
+    depends_on:
+      app:
+        condition: service_healthy
+    container_name: web-front
+  app:
+    image: fixtures
+    container_name: real-app
