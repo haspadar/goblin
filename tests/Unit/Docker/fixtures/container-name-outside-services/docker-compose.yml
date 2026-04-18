@@ -1,0 +1,8 @@
+services:
+  redis:
+    image: redis
+    container_name: only-redis
+volumes:
+  app:
+    driver: local
+    container_name: LEAKED_FROM_VOLUMES

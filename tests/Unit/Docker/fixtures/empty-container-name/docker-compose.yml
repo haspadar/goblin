@@ -1,0 +1,4 @@
+services:
+  app:
+    image: fixtures
+    container_name: # TODO name it

@@ -8,7 +8,10 @@ use Goblin\Cli\Arguments;
 use Goblin\Cli\Command\InstallCommand;
 use Goblin\Cli\InstallHook;
 use Goblin\Tests\Constraint\InstalledHooks;
+use Goblin\Tests\Constraint\NoHookFiles;
 use Goblin\Tests\Constraint\SkippedHooks;
+use Goblin\Tests\Fake\FailingInstall;
+use Goblin\Tests\Fake\FakeConfig;
 use Goblin\Tests\Fake\FakeOutput;
 use Goblin\Tests\Fixture\WithHooksBackup;
 use PHPUnit\Framework\Attributes\Test;
@@ -22,7 +25,8 @@ final class InstallCommandTest extends TestCase
         $output = new FakeOutput();
 
         (new WithHooksBackup())->run(function () use ($output): void {
-            (new InstallCommand($output))->run(new Arguments([], []));
+            (new InstallCommand($output, new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
         });
 
         self::assertThat($output, new InstalledHooks());
@@ -34,8 +38,10 @@ final class InstallCommandTest extends TestCase
         $output = new FakeOutput();
 
         (new WithHooksBackup())->run(function () use ($output): void {
-            (new InstallCommand(new FakeOutput()))->run(new Arguments([], []));
-            (new InstallCommand($output))->run(new Arguments([], []));
+            (new InstallCommand(new FakeOutput(), new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
+            (new InstallCommand($output, new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
         });
 
         self::assertThat($output, new SkippedHooks());
@@ -45,8 +51,8 @@ final class InstallCommandTest extends TestCase
     public function returnsZeroExitCode(): void
     {
         $code = (new WithHooksBackup())->run(
-            fn(): int => (new InstallCommand(new FakeOutput()))
-                ->run(new Arguments([], [])),
+            fn(): int => (new InstallCommand(new FakeOutput(), new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], [])),
         );
 
         self::assertSame(0, $code, 'must return 0 on success');
@@ -56,7 +62,8 @@ final class InstallCommandTest extends TestCase
     public function resolvesGoblinPathInEveryHook(): void
     {
         (new WithHooksBackup())->run(function (): void {
-            (new InstallCommand(new FakeOutput()))->run(new Arguments([], []));
+            (new InstallCommand(new FakeOutput(), new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
 
             exec('git rev-parse --show-toplevel', $lines, $code);
             self::assertSame(0, $code, 'git rev-parse must succeed');
@@ -71,6 +78,49 @@ final class InstallCommandTest extends TestCase
                     "{$hook->value} must reference goblin binaries via \$GOBLIN",
                 );
             }
+        });
+    }
+
+    #[Test]
+    public function writesContainerFlagIntoPrePushHook(): void
+    {
+        (new WithHooksBackup())->run(function (): void {
+            (new InstallCommand(new FakeOutput(), new FakeConfig([])))
+                ->run(new Arguments(['container' => 'checking-app'], []));
+
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
+            $prePush = (string) file_get_contents($lines[0] . '/.git/hooks/pre-push');
+
+            self::assertStringContainsString(
+                "--container='checking-app'",
+                $prePush,
+                'pre-push must embed the resolved container name',
+            );
+        });
+    }
+
+    #[Test]
+    public function failsWhenContainerCannotBeResolved(): void
+    {
+        $failed = (new WithHooksBackup())->run(
+            fn(): bool => (new FailingInstall(new InstallCommand(new FakeOutput(), new FakeConfig([]))))
+                ->failed([]),
+        );
+
+        self::assertTrue($failed, 'must throw when --container is absent and compose is missing');
+    }
+
+    #[Test]
+    public function writesNoHooksWhenContainerCannotBeResolved(): void
+    {
+        (new WithHooksBackup())->run(function (): void {
+            (new FailingInstall(new InstallCommand(new FakeOutput(), new FakeConfig([]))))
+                ->failed([]);
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
+
+            self::assertThat($lines[0] . '/.git/hooks', new NoHookFiles());
         });
     }
 }

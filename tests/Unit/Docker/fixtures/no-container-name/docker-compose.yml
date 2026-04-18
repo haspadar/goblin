@@ -1,0 +1,5 @@
+services:
+  app:
+    image: anon
+    ports:
+      - "8080:80"

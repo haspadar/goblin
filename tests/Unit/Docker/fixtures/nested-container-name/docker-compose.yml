@@ -1,0 +1,7 @@
+services:
+  app:
+    image: anon
+    environment:
+      container_name: NESTED_SHOULD_BE_IGNORED
+      DATABASE_URL: postgres://db
+    container_name: real-app

@@ -1,0 +1,10 @@
+services:
+  redis:
+    image: redis
+    container_name: fixtures-redis
+  app:
+    image: fixtures
+    container_name: fixtures-app
+  nginx:
+    image: nginx:alpine
+    container_name: fixtures-nginx
