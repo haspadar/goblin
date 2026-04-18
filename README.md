@@ -31,7 +31,7 @@ php bin/goblin install               # install git hooks
 `install` embeds the Docker container name into the generated `pre-push` hook. The value is resolved in this order:
 
 1. `--container=<name>` flag — wins over everything.
-2. `services.<service>.container_name` read from `docker-compose.yml` (or `.yaml` / `compose.yml`) in the project root.
+2. `services.<service>.container_name` read from the first detected compose file in the project root: `docker-compose.yml`, `docker-compose.yaml`, `compose.yml`, or `compose.yaml`.
 
 The service key defaults to `app`. Override it with `--service=<name>` or by setting `compose-service` in `.goblin.php`. If the container cannot be determined and no flag is provided, `install` fails without creating any hooks.
 
