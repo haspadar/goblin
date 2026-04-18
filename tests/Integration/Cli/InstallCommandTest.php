@@ -88,7 +88,8 @@ final class InstallCommandTest extends TestCase
             (new InstallCommand(new FakeOutput(), new FakeConfig([])))
                 ->run(new Arguments(['container' => 'checking-app'], []));
 
-            exec('git rev-parse --show-toplevel', $lines);
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
             $prePush = (string) file_get_contents($lines[0] . '/.git/hooks/pre-push');
 
             self::assertStringContainsString(
@@ -116,7 +117,8 @@ final class InstallCommandTest extends TestCase
         (new WithHooksBackup())->run(function (): void {
             (new FailingInstall(new InstallCommand(new FakeOutput(), new FakeConfig([]))))
                 ->failed([]);
-            exec('git rev-parse --show-toplevel', $lines);
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
 
             self::assertThat($lines[0] . '/.git/hooks', new NoHookFiles());
         });
