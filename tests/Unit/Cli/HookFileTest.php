@@ -177,12 +177,13 @@ final class HookFileTest extends TestCase
     public function preservesLeadingBlankLineOfForeignBody(): void
     {
         $path = self::tempPath('blank-line-commit-msg');
-        file_put_contents($path, "#!/bin/sh\n\n# foreign prelude\nexec foreign.sh\n");
+        $foreignBody = "\n# foreign prelude\nexec foreign.sh\n";
+        file_put_contents($path, "#!/bin/sh\n" . $foreignBody);
         $block = "# BEGIN goblin\necho blank-line-payload\n# END goblin\n";
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringEndsWith("\n# foreign prelude\nexec foreign.sh\n", (string) file_get_contents($path), 'blank line between shebang and foreign body must survive verbatim');
+        self::assertSame("#!/bin/sh\n\n" . $block . "\n" . $foreignBody, (string) file_get_contents($path), 'blank line between shebang and foreign body must survive verbatim');
     }
 
     #[Test]

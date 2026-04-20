@@ -44,7 +44,7 @@ php bin/goblin install --service=worker           # read services.worker.contain
 
 - file missing — a new hook is created;
 - file contains `# BEGIN goblin` — the hook is left untouched (re-runs are no-ops);
-- file exists without the marker — the goblin block is inserted right after the shebang, above any inherited body, so goblin checks run before a foreign hook can `exec` or `exit`.
+- file exists without the marker — if the hook has no shebang, `#!/bin/sh` is seeded first; then the goblin block is inserted right after the shebang, above any inherited body, so goblin checks run before a foreign hook can `exec` or `exit`.
 
 ## Usage
 
