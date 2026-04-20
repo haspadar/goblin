@@ -131,6 +131,30 @@ final class HookFileTest extends TestCase
         self::assertStringEndsWith($block, (string) file_get_contents($path), 'appended block must land at the end');
     }
 
+    #[Test]
+    public function treatsEmptyExistingFileAsFreshInstall(): void
+    {
+        $path = self::tempPath('empty-pre-push');
+        file_put_contents($path, '');
+        $block = "# BEGIN goblin\necho empty-payload\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertStringStartsWith("#!/bin/sh\n", (string) file_get_contents($path), 'empty file must be seeded with shebang');
+    }
+
+    #[Test]
+    public function stripsCarriageReturnBeforeAppendedBlock(): void
+    {
+        $path = self::tempPath('crlf-post-checkout');
+        file_put_contents($path, "#!/bin/sh\r\necho crlf-foreign\r\n");
+        $block = "# BEGIN goblin\necho crlf-payload\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertStringNotContainsString("\r\n\n# BEGIN goblin", (string) file_get_contents($path), 'append must not leave orphan CR before block');
+    }
+
     private static function tempPath(string $suffix): string
     {
         $path = sys_get_temp_dir() . '/goblin-hookfile-' . $suffix . '-' . bin2hex(random_bytes(4));

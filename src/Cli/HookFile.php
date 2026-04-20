@@ -27,17 +27,21 @@ final readonly class HookFile
      */
     public function install(): HookAction
     {
-        if (!file_exists($this->path)) {
+        if (!file_exists($this->path) || filesize($this->path) === 0) {
             return $this->write(self::SHEBANG . "\n\n" . $this->block, HookAction::Installed);
         }
 
-        $current = (string) file_get_contents($this->path);
+        $current = file_get_contents($this->path);
+
+        if ($current === false) {
+            throw new GoblinException("Failed to read hook: {$this->path}");
+        }
 
         if (preg_match('/^' . preg_quote(self::MARKER, '/') . '\b/m', $current) === 1) {
             return HookAction::Skipped;
         }
 
-        return $this->write(rtrim($current, "\n") . "\n\n" . $this->block, HookAction::Appended);
+        return $this->write(rtrim($current, "\r\n") . "\n\n" . $this->block, HookAction::Appended);
     }
 
     /**
@@ -51,7 +55,9 @@ final readonly class HookFile
             throw new GoblinException("Failed to write hook: {$this->path}");
         }
 
-        chmod($this->path, 0o755);
+        if (!chmod($this->path, 0o755)) {
+            throw new GoblinException("Failed to make hook executable: {$this->path}");
+        }
 
         return $action;
     }
