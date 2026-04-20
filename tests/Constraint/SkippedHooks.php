@@ -19,7 +19,7 @@ final class SkippedHooks extends Constraint
     public function __construct()
     {
         $this->expected = array_map(
-            static fn(InstallHook $hook): string => "Skipped {$hook->value} (already exists)",
+            static fn(InstallHook $hook): string => "Skipped {$hook->value} (already installed)",
             InstallHook::cases(),
         );
     }
