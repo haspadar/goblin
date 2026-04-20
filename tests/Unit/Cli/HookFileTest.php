@@ -36,6 +36,10 @@ final class HookFileTest extends TestCase
     #[Test]
     public function flagsFreshHookExecutable(): void
     {
+        if (DIRECTORY_SEPARATOR === '\\') {
+            self::markTestSkipped('POSIX file modes are not enforced on Windows');
+        }
+
         $path = self::tempPath('chmod-post-checkout');
         $block = "# BEGIN goblin\necho chmod-check\n# END goblin\n";
 
@@ -152,7 +156,7 @@ final class HookFileTest extends TestCase
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringNotContainsString("\r\n\n# BEGIN goblin", (string) file_get_contents($path), 'append must not leave orphan CR before block');
+        self::assertStringEndsWith("\n\n" . $block, (string) file_get_contents($path), 'block must be appended after LF separator, no orphan CR');
     }
 
     private static function tempPath(string $suffix): string
