@@ -82,6 +82,47 @@ final class InstallCommandTest extends TestCase
     }
 
     #[Test]
+    public function appendsGoblinBlockToForeignHook(): void
+    {
+        $output = new FakeOutput();
+
+        (new WithHooksBackup())->run(function () use ($output): void {
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
+            $foreign = "#!/bin/sh\necho foreign-commit-msg\n";
+            file_put_contents($lines[0] . '/.git/hooks/commit-msg', $foreign);
+
+            (new InstallCommand($output, new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
+        });
+
+        self::assertContains(
+            'Appended goblin block to commit-msg',
+            $output->successes,
+            'foreign hook must be reported as appended',
+        );
+    }
+
+    #[Test]
+    public function preservesForeignContentWhenAppending(): void
+    {
+        $foreign = "#!/bin/sh\necho sentinel-pre-push-line\n";
+
+        (new WithHooksBackup())->run(function () use ($foreign): void {
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
+            file_put_contents($lines[0] . '/.git/hooks/pre-push', $foreign);
+
+            (new InstallCommand(new FakeOutput(), new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
+
+            $after = (string) file_get_contents($lines[0] . '/.git/hooks/pre-push');
+
+            self::assertStringStartsWith($foreign, $after, 'append must keep foreign content at the top');
+        });
+    }
+
+    #[Test]
     public function writesContainerFlagIntoPrePushHook(): void
     {
         (new WithHooksBackup())->run(function (): void {
