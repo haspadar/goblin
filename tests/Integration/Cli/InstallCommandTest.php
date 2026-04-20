@@ -123,6 +123,29 @@ final class InstallCommandTest extends TestCase
     }
 
     #[Test]
+    public function skipsOnSecondRunAfterAppendingToForeignHook(): void
+    {
+        $output = new FakeOutput();
+
+        (new WithHooksBackup())->run(function () use ($output): void {
+            exec('git rev-parse --show-toplevel', $lines, $code);
+            self::assertSame(0, $code, 'git rev-parse must succeed');
+            file_put_contents($lines[0] . '/.git/hooks/commit-msg', "#!/bin/sh\necho foreign-commit-msg\n");
+
+            (new InstallCommand(new FakeOutput(), new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
+            (new InstallCommand($output, new FakeConfig([])))
+                ->run(new Arguments(['container' => 'goblin-test-app'], []));
+        });
+
+        self::assertContains(
+            'Skipped commit-msg (already installed)',
+            $output->muted,
+            'second run after append must skip',
+        );
+    }
+
+    #[Test]
     public function writesContainerFlagIntoPrePushHook(): void
     {
         (new WithHooksBackup())->run(function (): void {

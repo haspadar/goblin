@@ -95,6 +95,31 @@ final class HookFileTest extends TestCase
     }
 
     #[Test]
+    public function skipsOnSecondInstallAfterAppend(): void
+    {
+        $path = self::tempPath('reinstall-commit-msg');
+        file_put_contents($path, "#!/bin/sh\necho foreign-hook\n");
+        $block = "# BEGIN goblin\necho reinstall-payload\n# END goblin\n";
+        (new HookFile($path, $block))->install();
+
+        $action = (new HookFile($path, $block))->install();
+
+        self::assertSame(HookAction::Skipped, $action, 'second install after append must skip');
+    }
+
+    #[Test]
+    public function ignoresMarkerPhraseInsideForeignLine(): void
+    {
+        $path = self::tempPath('inline-marker-pre-push');
+        file_put_contents($path, "#!/bin/sh\necho \"see # BEGIN goblin in a sentence\"\n");
+        $block = "# BEGIN goblin\necho real-block\n# END goblin\n";
+
+        $action = (new HookFile($path, $block))->install();
+
+        self::assertSame(HookAction::Appended, $action, 'marker not at line start must not count as installed');
+    }
+
+    #[Test]
     public function appendsBlockAtEndOfFile(): void
     {
         $path = self::tempPath('tail-commit-msg');
