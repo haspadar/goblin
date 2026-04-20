@@ -40,6 +40,12 @@ php bin/goblin install --container=myapp          # force a specific container
 php bin/goblin install --service=worker           # read services.worker.container_name
 ```
 
+`install` is safe to run on repositories that already have hooks. For each of `commit-msg`, `pre-push`, `post-checkout` it does one of three things:
+
+- file missing — a new hook is created;
+- file contains `# BEGIN goblin` — the hook is left untouched (re-runs are no-ops);
+- file exists without the marker — the goblin block is appended between `# BEGIN goblin` and `# END goblin`, preserving any inherited content above it.
+
 ## Usage
 
 ```bash
