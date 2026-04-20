@@ -33,7 +33,7 @@ final readonly class HookFile
 
         $current = (string) file_get_contents($this->path);
 
-        if (str_contains($current, self::MARKER)) {
+        if (preg_match('/^' . preg_quote(self::MARKER, '/') . '\b/m', $current) === 1) {
             return HookAction::Skipped;
         }
 
