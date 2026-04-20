@@ -10,6 +10,6 @@ namespace Goblin\Cli;
 enum HookAction: string
 {
     case Installed = 'installed';
-    case Appended = 'appended';
+    case Prepended = 'prepended';
     case Skipped = 'skipped';
 }

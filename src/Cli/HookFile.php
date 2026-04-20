@@ -7,7 +7,7 @@ namespace Goblin\Cli;
 use Goblin\GoblinException;
 
 /**
- * Git hook file with idempotent install-or-append semantics.
+ * Git hook file with idempotent install-or-prepend semantics.
  */
 final readonly class HookFile
 {
@@ -41,7 +41,31 @@ final readonly class HookFile
             return HookAction::Skipped;
         }
 
-        return $this->write(rtrim($current, "\r\n") . "\n\n" . $this->block, HookAction::Appended);
+        return $this->write($this->prepend($current), HookAction::Prepended);
+    }
+
+    /**
+     * Inserts the goblin block between the shebang and the foreign body.
+     * If no shebang is present, writes SHEBANG first, then block, then the whole original.
+     */
+    private function prepend(string $current): string
+    {
+        $normalized = str_replace("\r\n", "\n", $current);
+
+        if (!str_starts_with($normalized, '#!')) {
+            return self::SHEBANG . "\n\n" . $this->block . "\n" . ltrim($normalized, "\n");
+        }
+
+        $newline = strpos($normalized, "\n");
+
+        if ($newline === false) {
+            return $normalized . "\n\n" . $this->block;
+        }
+
+        $shebang = substr($normalized, 0, $newline);
+        $rest = ltrim(substr($normalized, $newline + 1), "\n");
+
+        return $shebang . "\n\n" . $this->block . "\n" . $rest;
     }
 
     /**

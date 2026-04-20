@@ -82,7 +82,7 @@ final class InstallCommandTest extends TestCase
     }
 
     #[Test]
-    public function appendsGoblinBlockToForeignHook(): void
+    public function prependsGoblinBlockToForeignHook(): void
     {
         $output = new FakeOutput();
 
@@ -97,33 +97,33 @@ final class InstallCommandTest extends TestCase
         });
 
         self::assertContains(
-            'Appended goblin block to commit-msg',
+            'Prepended goblin block to commit-msg',
             $output->successes,
-            'foreign hook must be reported as appended',
+            'foreign hook must be reported as prepended',
         );
     }
 
     #[Test]
-    public function preservesForeignContentWhenAppending(): void
+    public function insertsGoblinBlockAboveForeignBody(): void
     {
-        $foreign = "#!/bin/sh\necho sentinel-pre-push-line\n";
+        $foreignBody = "echo sentinel-pre-push-line\nexit 0\n";
 
-        (new WithHooksBackup())->run(function () use ($foreign): void {
+        (new WithHooksBackup())->run(function () use ($foreignBody): void {
             exec('git rev-parse --show-toplevel', $lines, $code);
             self::assertSame(0, $code, 'git rev-parse must succeed');
-            file_put_contents($lines[0] . '/.git/hooks/pre-push', $foreign);
+            file_put_contents($lines[0] . '/.git/hooks/pre-push', "#!/bin/sh\n" . $foreignBody);
 
             (new InstallCommand(new FakeOutput(), new FakeConfig([])))
                 ->run(new Arguments(['container' => 'goblin-test-app'], []));
 
             $after = (string) file_get_contents($lines[0] . '/.git/hooks/pre-push');
 
-            self::assertStringStartsWith($foreign, $after, 'append must keep foreign content at the top');
+            self::assertStringEndsWith($foreignBody, $after, 'foreign body must survive verbatim below the goblin block');
         });
     }
 
     #[Test]
-    public function skipsOnSecondRunAfterAppendingToForeignHook(): void
+    public function skipsOnSecondRunAfterPrependingToForeignHook(): void
     {
         $output = new FakeOutput();
 
@@ -141,7 +141,7 @@ final class InstallCommandTest extends TestCase
         self::assertContains(
             'Skipped commit-msg (already installed)',
             $output->muted,
-            'second run after append must skip',
+            'second run after prepend must skip',
         );
     }
 
