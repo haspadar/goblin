@@ -124,6 +124,20 @@ final class HookFileTest extends TestCase
     }
 
     #[Test]
+    public function leavesFileBytesIdenticalOnSecondInstall(): void
+    {
+        $path = self::tempPath('idempotent-post-checkout');
+        file_put_contents($path, "#!/bin/sh\necho idempotent-foreign\n");
+        $block = "# BEGIN goblin\necho idempotent-payload\n# END goblin\n";
+        (new HookFile($path, $block))->install();
+        $afterFirst = (string) file_get_contents($path);
+
+        (new HookFile($path, $block))->install();
+
+        self::assertSame($afterFirst, (string) file_get_contents($path), 'second install must leave file bytes untouched');
+    }
+
+    #[Test]
     public function ignoresMarkerPhraseInsideForeignLine(): void
     {
         $path = self::tempPath('inline-marker-pre-push');
@@ -144,7 +158,31 @@ final class HookFileTest extends TestCase
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringStartsWith("#!/bin/sh\n\n" . $block, (string) file_get_contents($path), 'missing shebang must be added before the block');
+        self::assertSame("#!/bin/sh\n\n" . $block . "\necho foreign-body-no-shebang\n", (string) file_get_contents($path), 'missing shebang must be added before the block and original body preserved byte-for-byte');
+    }
+
+    #[Test]
+    public function preservesOnlyShebangFileWithoutTrailingNewline(): void
+    {
+        $path = self::tempPath('shebang-only-pre-push');
+        file_put_contents($path, '#!/bin/sh');
+        $block = "# BEGIN goblin\necho shebang-only-payload\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertSame("#!/bin/sh\n\n" . $block, (string) file_get_contents($path), 'shebang-only file without newline must get block appended after newline separator');
+    }
+
+    #[Test]
+    public function preservesLeadingBlankLineOfForeignBody(): void
+    {
+        $path = self::tempPath('blank-line-commit-msg');
+        file_put_contents($path, "#!/bin/sh\n\n# foreign prelude\nexec foreign.sh\n");
+        $block = "# BEGIN goblin\necho blank-line-payload\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertStringEndsWith("\n# foreign prelude\nexec foreign.sh\n", (string) file_get_contents($path), 'blank line between shebang and foreign body must survive verbatim');
     }
 
     #[Test]
@@ -160,7 +198,7 @@ final class HookFileTest extends TestCase
     }
 
     #[Test]
-    public function stripsCarriageReturnFromShebangLine(): void
+    public function preservesCarriageReturnsInForeignBody(): void
     {
         $path = self::tempPath('crlf-post-checkout');
         file_put_contents($path, "#!/bin/sh\r\necho crlf-foreign\r\n");
@@ -168,7 +206,7 @@ final class HookFileTest extends TestCase
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringStartsWith("#!/bin/sh\n\n" . $block, (string) file_get_contents($path), 'CRLF shebang must be normalized to LF before the block');
+        self::assertStringEndsWith("echo crlf-foreign\r\n", (string) file_get_contents($path), 'CRLF line endings in foreign body must be preserved byte-for-byte');
     }
 
     private static function tempPath(string $suffix): string

@@ -46,26 +46,24 @@ final readonly class HookFile
 
     /**
      * Inserts the goblin block between the shebang and the foreign body.
-     * If no shebang is present, writes SHEBANG first, then block, then the whole original.
+     * Foreign bytes are preserved verbatim — no line-ending normalization, no trimming.
      */
     private function prepend(string $current): string
     {
-        $normalized = str_replace("\r\n", "\n", $current);
-
-        if (!str_starts_with($normalized, '#!')) {
-            return self::SHEBANG . "\n\n" . $this->block . "\n" . ltrim($normalized, "\n");
+        if (!str_starts_with($current, '#!')) {
+            return self::SHEBANG . "\n\n" . $this->block . "\n" . $current;
         }
 
-        $newline = strpos($normalized, "\n");
+        $newline = strpos($current, "\n");
 
         if ($newline === false) {
-            return $normalized . "\n\n" . $this->block;
+            return $current . "\n\n" . $this->block;
         }
 
-        $shebang = substr($normalized, 0, $newline);
-        $rest = ltrim(substr($normalized, $newline + 1), "\n");
+        $shebang = substr($current, 0, $newline + 1);
+        $rest = substr($current, $newline + 1);
 
-        return $shebang . "\n\n" . $this->block . "\n" . $rest;
+        return $shebang . "\n" . $this->block . "\n" . $rest;
     }
 
     /**
