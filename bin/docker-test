@@ -40,7 +40,10 @@ $code = 1;
 
 try {
     $basePath = dirname(__DIR__) . '/.goblin.php';
-    $overlay = (new ProjectConfigPath($args->option('config'), (string) getcwd()))->value();
+    $cwd = getcwd();
+    $overlay = $cwd === false
+        ? null
+        : (new ProjectConfigPath($args->option('config'), $cwd))->value();
     $config = new FileConfig((new MergedConfigFile($basePath, $overlay))->data());
 
     $code = (new TestCommand(new ShellDocker($output), $config, $output))
