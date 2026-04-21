@@ -10,8 +10,9 @@ use Goblin\Cli\Command\InstallCommand;
 use Goblin\Cli\Command\IssueCommand;
 use Goblin\Cli\Command\MrCommand;
 use Goblin\Cli\ParsedArgv;
-use Goblin\Config\ConfigFile;
 use Goblin\Config\FileConfig;
+use Goblin\Config\MergedConfigFile;
+use Goblin\Config\ProjectConfigPath;
 use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
@@ -41,15 +42,20 @@ if ($args->flag('debug')) {
 $configPath = dirname(__DIR__) . '/.goblin.php';
 
 try {
+    $cwd = getcwd();
+    $overlay = $cwd === false
+        ? null
+        : (new ProjectConfigPath($args->option('config'), $cwd))->value();
+
     if ($command === 'install') {
         $config = is_file($configPath)
-            ? new FileConfig((new ConfigFile($configPath))->data())
+            ? new FileConfig((new MergedConfigFile($configPath, $overlay))->data())
             : new FileConfig([]);
         $code = (new InstallCommand($output, $config))->run($args);
         exit($code);
     }
 
-    $config = new FileConfig((new ConfigFile($configPath))->data());
+    $config = new FileConfig((new MergedConfigFile($configPath, $overlay))->data());
     $http = new CurlHttp(
         $config->value('jira-url'),
         $config->value('jira-user'),
