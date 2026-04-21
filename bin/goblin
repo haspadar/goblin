@@ -12,6 +12,8 @@ use Goblin\Cli\Command\MrCommand;
 use Goblin\Cli\ParsedArgv;
 use Goblin\Config\ConfigFile;
 use Goblin\Config\FileConfig;
+use Goblin\Config\MergedConfigFile;
+use Goblin\Config\ProjectConfigPath;
 use Goblin\Git\ShellGit;
 use Goblin\GoblinException;
 use Goblin\Http\CurlHttp;
@@ -49,7 +51,8 @@ try {
         exit($code);
     }
 
-    $config = new FileConfig((new ConfigFile($configPath))->data());
+    $overlay = (new ProjectConfigPath($args->option('config'), (string) getcwd()))->value();
+    $config = new FileConfig((new MergedConfigFile($configPath, $overlay))->data());
     $http = new CurlHttp(
         $config->value('jira-url'),
         $config->value('jira-user'),

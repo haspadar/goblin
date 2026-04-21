@@ -46,6 +46,24 @@ php bin/goblin install --service=worker           # read services.worker.contain
 - file contains `# BEGIN goblin` — the hook is left untouched (re-runs are no-ops);
 - file exists without the marker — if the hook has no shebang, `#!/bin/sh` is seeded first; then the goblin block is inserted right after the shebang, above any inherited body, so goblin checks run before a foreign hook can `exec` or `exit`.
 
+## Per-project config
+
+The global `.goblin.php` next to the goblin checkout holds shared defaults and secrets (`jira-token`, `gitlab-token`, URLs). Individual repositories can override specific keys — for example a different `protected-branches` list — without duplicating the whole file.
+
+Drop a `.goblin.php` into the repo root with only the keys you want to replace:
+
+```php
+<?php
+
+return [
+    'protected-branches' => ['master'],
+];
+```
+
+Goblin scripts auto-detect `<cwd>/.goblin.php` and layer it on top of the global config. Top-level keys from the overlay replace the base (nested arrays are replaced wholesale, not merged deeply). Pass `--config=<path>` to point at a different overlay file explicitly.
+
+Do not put secrets into the overlay — tokens stay in the global `.goblin.php`.
+
 ## Usage
 
 ```bash
