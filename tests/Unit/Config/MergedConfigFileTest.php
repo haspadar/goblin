@@ -55,13 +55,16 @@ final class MergedConfigFileTest extends TestCase
     }
 
     #[Test]
-    public function skipsOverlayWhenItResolvesToBasePath(): void
+    public function skipsOverlayWhenSymlinkResolvesToBasePath(): void
     {
-        $base = self::writeConfig('overlay-same-path', ['jira-url' => 'https://base.example']);
+        $base = self::writeConfig('overlay-symlink-base', ['jira-url' => 'https://base.example', 'branch-rules' => ['default' => 'dev']]);
+        $symlink = sys_get_temp_dir() . '/goblin-merged-overlay-symlink-' . bin2hex(random_bytes(4)) . '.php';
+        symlink($base, $symlink);
+        register_shutdown_function(static fn() => is_link($symlink) && unlink($symlink));
 
-        $data = (new MergedConfigFile($base, $base))->data();
+        $data = (new MergedConfigFile($base, $symlink))->data();
 
-        self::assertSame(['jira-url' => 'https://base.example'], $data, 'overlay equal to base is treated as no-overlay to avoid double merge');
+        self::assertSame(['jira-url' => 'https://base.example', 'branch-rules' => ['default' => 'dev']], $data, 'overlay symlink pointing to base is detected via realpath and treated as no-overlay');
     }
 
     #[Test]
