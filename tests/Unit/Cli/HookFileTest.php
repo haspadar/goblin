@@ -74,32 +74,44 @@ final class HookFileTest extends TestCase
     }
 
     #[Test]
-    public function appendsBlockWhenForeignHookExists(): void
+    public function prependsBlockWhenForeignHookExists(): void
     {
-        $path = self::tempPath('append-post-checkout');
+        $path = self::tempPath('prepend-post-checkout');
         file_put_contents($path, "#!/bin/sh\nexec sh \"\$ROOT/../pilot/hooks/post-checkout\" \"\$@\"\n");
-        $block = "# BEGIN goblin\necho appended-payload\n# END goblin\n";
+        $block = "# BEGIN goblin\necho prepended-payload\n# END goblin\n";
 
         $action = (new HookFile($path, $block))->install();
 
-        self::assertSame(HookAction::Appended, $action, 'foreign hook must trigger append');
+        self::assertSame(HookAction::Prepended, $action, 'foreign hook must trigger prepend');
     }
 
     #[Test]
-    public function keepsForeignContentAbovePastedBlock(): void
+    public function insertsBlockDirectlyAfterShebang(): void
     {
         $path = self::tempPath('preserve-pre-push');
-        $pilot = "#!/bin/sh\nexec sh \"\$ROOT/../pilot/hooks/pre-push\" \"\$@\"\n";
-        file_put_contents($path, $pilot);
+        file_put_contents($path, "#!/bin/sh\nexec sh \"\$ROOT/../pilot/hooks/pre-push\" \"\$@\"\n");
         $block = "# BEGIN goblin\necho goblin-pre-push\n# END goblin\n";
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringStartsWith($pilot, (string) file_get_contents($path), 'append must preserve existing content at the top');
+        self::assertStringStartsWith("#!/bin/sh\n\n" . $block, (string) file_get_contents($path), 'block must sit between shebang and foreign body');
     }
 
     #[Test]
-    public function skipsOnSecondInstallAfterAppend(): void
+    public function preservesForeignBodyBelowBlock(): void
+    {
+        $path = self::tempPath('foreign-body-preserved-pre-push');
+        $foreignBody = "exec sh \"\$ROOT/../pilot/hooks/pre-push\" \"\$@\"\nexit 0\n";
+        file_put_contents($path, "#!/bin/sh\n" . $foreignBody);
+        $block = "# BEGIN goblin\necho goblin-pre-push\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertStringEndsWith($foreignBody, (string) file_get_contents($path), 'foreign body must remain verbatim at the tail');
+    }
+
+    #[Test]
+    public function skipsOnSecondInstallAfterPrepend(): void
     {
         $path = self::tempPath('reinstall-commit-msg');
         file_put_contents($path, "#!/bin/sh\necho foreign-hook\n");
@@ -108,7 +120,21 @@ final class HookFileTest extends TestCase
 
         $action = (new HookFile($path, $block))->install();
 
-        self::assertSame(HookAction::Skipped, $action, 'second install after append must skip');
+        self::assertSame(HookAction::Skipped, $action, 'second install after prepend must skip');
+    }
+
+    #[Test]
+    public function leavesFileBytesIdenticalOnSecondInstall(): void
+    {
+        $path = self::tempPath('idempotent-post-checkout');
+        file_put_contents($path, "#!/bin/sh\necho idempotent-foreign\n");
+        $block = "# BEGIN goblin\necho idempotent-payload\n# END goblin\n";
+        (new HookFile($path, $block))->install();
+        $afterFirst = (string) file_get_contents($path);
+
+        (new HookFile($path, $block))->install();
+
+        self::assertSame($afterFirst, (string) file_get_contents($path), 'second install must leave file bytes untouched');
     }
 
     #[Test]
@@ -120,19 +146,44 @@ final class HookFileTest extends TestCase
 
         $action = (new HookFile($path, $block))->install();
 
-        self::assertSame(HookAction::Appended, $action, 'marker not at line start must not count as installed');
+        self::assertSame(HookAction::Prepended, $action, 'marker not at line start must not count as installed');
     }
 
     #[Test]
-    public function appendsBlockAtEndOfFile(): void
+    public function seedsShebangWhenForeignHookHasNone(): void
     {
-        $path = self::tempPath('tail-commit-msg');
-        file_put_contents($path, "#!/bin/sh\nexec sh \"\$ROOT/../pilot/hooks/commit-msg\" \"\$@\"\n");
-        $block = "# BEGIN goblin\necho tail-payload\n# END goblin\n";
+        $path = self::tempPath('no-shebang-commit-msg');
+        file_put_contents($path, "echo foreign-body-no-shebang\n");
+        $block = "# BEGIN goblin\necho shebang-less-payload\n# END goblin\n";
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringEndsWith($block, (string) file_get_contents($path), 'appended block must land at the end');
+        self::assertSame("#!/bin/sh\n\n" . $block . "\necho foreign-body-no-shebang\n", (string) file_get_contents($path), 'missing shebang must be added before the block and original body preserved byte-for-byte');
+    }
+
+    #[Test]
+    public function preservesOnlyShebangFileWithoutTrailingNewline(): void
+    {
+        $path = self::tempPath('shebang-only-pre-push');
+        file_put_contents($path, '#!/bin/sh');
+        $block = "# BEGIN goblin\necho shebang-only-payload\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertSame("#!/bin/sh\n\n" . $block, (string) file_get_contents($path), 'shebang-only file without newline must get block appended after newline separator');
+    }
+
+    #[Test]
+    public function preservesLeadingBlankLineOfForeignBody(): void
+    {
+        $path = self::tempPath('blank-line-commit-msg');
+        $foreignBody = "\n# foreign prelude\nexec foreign.sh\n";
+        file_put_contents($path, "#!/bin/sh\n" . $foreignBody);
+        $block = "# BEGIN goblin\necho blank-line-payload\n# END goblin\n";
+
+        (new HookFile($path, $block))->install();
+
+        self::assertSame("#!/bin/sh\n\n" . $block . "\n" . $foreignBody, (string) file_get_contents($path), 'blank line between shebang and foreign body must survive verbatim');
     }
 
     #[Test]
@@ -148,7 +199,7 @@ final class HookFileTest extends TestCase
     }
 
     #[Test]
-    public function stripsCarriageReturnBeforeAppendedBlock(): void
+    public function preservesCarriageReturnsInForeignBody(): void
     {
         $path = self::tempPath('crlf-post-checkout');
         file_put_contents($path, "#!/bin/sh\r\necho crlf-foreign\r\n");
@@ -156,7 +207,7 @@ final class HookFileTest extends TestCase
 
         (new HookFile($path, $block))->install();
 
-        self::assertStringEndsWith("\n\n" . $block, (string) file_get_contents($path), 'block must be appended after LF separator, no orphan CR');
+        self::assertStringEndsWith("echo crlf-foreign\r\n", (string) file_get_contents($path), 'CRLF line endings in foreign body must be preserved byte-for-byte');
     }
 
     private static function tempPath(string $suffix): string

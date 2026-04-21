@@ -55,7 +55,7 @@ final readonly class InstallCommand implements Command
     {
         match ($action) {
             HookAction::Installed => $this->output->success("Installed {$hook->value}"),
-            HookAction::Appended => $this->output->success("Appended goblin block to {$hook->value}"),
+            HookAction::Prepended => $this->output->success("Prepended goblin block to {$hook->value}"),
             HookAction::Skipped => $this->output->muted("Skipped {$hook->value} (already installed)"),
         };
     }
