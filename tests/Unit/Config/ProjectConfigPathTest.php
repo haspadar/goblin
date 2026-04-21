@@ -59,9 +59,7 @@ final class ProjectConfigPathTest extends TestCase
         $dir = sys_get_temp_dir() . '/goblin-project-config-' . $suffix . '-' . bin2hex(random_bytes(4));
         mkdir($dir);
         register_shutdown_function(static function () use ($dir): void {
-            foreach (glob($dir . '/*') ?: [] as $file) {
-                is_file($file) && unlink($file);
-            }
+            array_map(unlink(...), glob($dir . '/{,.}*.php', GLOB_BRACE) ?: []);
             is_dir($dir) && rmdir($dir);
         });
 
