@@ -37,7 +37,7 @@ final readonly class ShellDocker implements Docker
             $lines,
             $code,
         );
-        $this->output->info(implode("\n", $lines));
+        $this->output->muted(implode("\n", $lines));
 
         return $code;
     }
