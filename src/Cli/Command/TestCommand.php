@@ -42,7 +42,7 @@ final readonly class TestCommand implements Command
             ? 'php artisan test --parallel'
             : 'php artisan test';
 
-        $this->output->info("Running tests in '{$container}'...");
+        $this->output->muted("Running tests in '{$container}'...");
         $code = $this->docker->exec($container, $command);
 
         if ($code !== 0) {
