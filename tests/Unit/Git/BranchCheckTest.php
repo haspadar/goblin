@@ -183,183 +183,171 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
-    public function passesWhenParentIsMasterWithMultipleBases(): void
+    public function patchHotfixForkedFromMasterPassesWhenBetaAlsoAllowed(): void
     {
         $check = new BranchCheck(
-            new FakeGit('MSP-100-payment-retry', 'master'),
+            new FakeGit('CRS-77-bank-timeout', 'master'),
             new FakeHttp([
-                'GET /rest/api/3/issue/MSP-100' => [
+                'GET /rest/api/3/issue/CRS-77' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'MSP 1.14.1']],
+                        'fixVersions' => [['name' => 'CRS 2.3.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
+                'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name&startAt=0' => [
                     'values' => [
-                        ['name' => 'MSP 1.14.0', 'released' => false],
-                        ['name' => 'MSP 1.14.1', 'released' => false],
+                        ['name' => 'CRS 2.3.0', 'released' => false],
+                        ['name' => 'CRS 2.3.1', 'released' => false],
                     ],
                 ],
             ]),
             new FakeConfig([
-                'protected-branches' => ['main'],
+                'protected-branches' => ['main', 'master'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
                 'branch-rules' => [
                     'beta' => [
                         'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
                         'base' => ['beta', 'master'],
                     ],
-                    'default' => 'dev',
+                    'default' => 'develop',
                 ],
             ]),
         );
 
         $check->validate();
 
-        self::assertTrue(true, 'master as one of multiple bases must pass validation');
+        self::assertTrue(true, 'patch forked off master must pass when master is in bases');
     }
 
     #[Test]
-    public function passesWhenParentIsBetaWithMultipleBases(): void
+    public function continuationBranchOffBetaPassesForPatchRelease(): void
     {
         $check = new BranchCheck(
-            new FakeGit('MSP-101-refund', 'beta'),
+            new FakeGit('PAY-204-retry-policy', 'beta'),
             new FakeHttp([
-                'GET /rest/api/3/issue/MSP-101' => [
+                'GET /rest/api/3/issue/PAY-204' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'MSP 1.14.1']],
+                        'fixVersions' => [['name' => 'PAY 11.0.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'MSP 1.14.0', 'released' => false],
-                        ['name' => 'MSP 1.14.1', 'released' => false],
-                    ],
+                'GET /rest/api/3/project/PAY/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'PAY 11.0.1', 'released' => false]],
                 ],
             ]),
             new FakeConfig([
-                'protected-branches' => ['main'],
+                'protected-branches' => ['beta'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
                 'branch-rules' => [
                     'beta' => [
                         'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
                         'base' => ['beta', 'master'],
                     ],
-                    'default' => 'dev',
+                    'default' => 'trunk',
                 ],
             ]),
         );
 
         $check->validate();
 
-        self::assertTrue(true, 'beta as one of multiple bases must pass validation');
+        self::assertTrue(true, 'follow-up patch must pass when forked off the same beta line');
     }
 
     #[Test]
-    public function listsAllAllowedBasesInErrorMessage(): void
+    public function errorEnumeratesEveryBaseWhenParentIsForeign(): void
     {
         $check = new BranchCheck(
-            new FakeGit('MSP-102-settlement', 'stage'),
+            new FakeGit('SHOP-9012-promo-coupon', 'staging'),
             new FakeHttp([
-                'GET /rest/api/3/issue/MSP-102' => [
+                'GET /rest/api/3/issue/SHOP-9012' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'MSP 2.7.1']],
+                        'fixVersions' => [['name' => 'SHOP 18.4.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'MSP 2.7.0', 'released' => false],
-                        ['name' => 'MSP 2.7.1', 'released' => false],
-                    ],
+                'GET /rest/api/3/project/SHOP/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'SHOP 18.4.1', 'released' => false]],
                 ],
             ]),
             new FakeConfig([
-                'protected-branches' => ['main'],
+                'protected-branches' => ['staging', 'release'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
                 'branch-rules' => [
-                    'beta' => [
+                    'release' => [
                         'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
-                        'base' => ['beta', 'master'],
+                        'base' => ['release', 'hotfix'],
                     ],
-                    'default' => 'dev',
+                    'default' => 'main',
                 ],
             ]),
         );
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage("requires base 'beta' or 'master', but branch was created from 'stage'");
+        $this->expectExceptionMessage("requires base 'release' or 'hotfix', but branch was created from 'staging'");
 
         $check->validate();
     }
 
     #[Test]
-    public function acceptsSingleBaseOverridingTarget(): void
+    public function singleBaseStringRedirectsForkPointAwayFromTarget(): void
     {
         $check = new BranchCheck(
-            new FakeGit('BRS-55-chargeback', 'master'),
+            new FakeGit('AUTH-318-saml-rotation', 'release/4.x'),
             new FakeHttp([
-                'GET /rest/api/3/issue/BRS-55' => [
+                'GET /rest/api/3/issue/AUTH-318' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'BRS 3.0.1']],
+                        'fixVersions' => [['name' => 'AUTH 6.5.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/BRS/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'BRS 3.0.0', 'released' => false],
-                        ['name' => 'BRS 3.0.1', 'released' => false],
-                    ],
+                'GET /rest/api/3/project/AUTH/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'AUTH 6.5.1', 'released' => false]],
                 ],
             ]),
             new FakeConfig([
-                'protected-branches' => ['main'],
+                'protected-branches' => ['release/4.x'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
                 'branch-rules' => [
-                    'beta' => [
+                    'qa' => [
                         'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
-                        'base' => 'master',
+                        'base' => 'release/4.x',
                     ],
-                    'default' => 'dev',
+                    'default' => 'next',
                 ],
             ]),
         );
 
         $check->validate();
 
-        self::assertTrue(true, 'string base must override target and accept that branch');
+        self::assertTrue(true, 'string base must point fork at a branch other than the rule key');
     }
 
     #[Test]
-    public function rejectsTargetWhenSingleBaseOverrides(): void
+    public function targetBranchIsRejectedWhenStringBaseOverridesIt(): void
     {
         $check = new BranchCheck(
-            new FakeGit('BRS-56-dispute', 'beta'),
+            new FakeGit('BILL-44-vat-rounding', 'qa'),
             new FakeHttp([
-                'GET /rest/api/3/issue/BRS-56' => [
+                'GET /rest/api/3/issue/BILL-44' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'BRS 4.1.1']],
+                        'fixVersions' => [['name' => 'BILL 9.2.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/BRS/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [
-                        ['name' => 'BRS 4.1.0', 'released' => false],
-                        ['name' => 'BRS 4.1.1', 'released' => false],
-                    ],
+                'GET /rest/api/3/project/BILL/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'BILL 9.2.1', 'released' => false]],
                 ],
             ]),
             new FakeConfig([
-                'protected-branches' => ['main'],
+                'protected-branches' => ['qa'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
                 'branch-rules' => [
-                    'beta' => [
+                    'qa' => [
                         'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
-                        'base' => 'master',
+                        'base' => 'integration',
                     ],
-                    'default' => 'dev',
+                    'default' => 'mainline',
                 ],
             ]),
         );
 
         $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage("requires base 'master', but branch was created from 'beta'");
+        $this->expectExceptionMessage("requires base 'integration', but branch was created from 'qa'");
 
         $check->validate();
     }
