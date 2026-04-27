@@ -31,7 +31,7 @@ final class TestCommandTest extends TestCase
     }
 
     #[Test]
-    public function runsParallelWhenFlagSet(): void
+    public function defaultsToArtisanTestWhenConfigOmitsTestCommand(): void
     {
         $docker = new FakeDocker(running: true, exitCode: 0);
         $cmd = new TestCommand(
@@ -40,12 +40,34 @@ final class TestCommandTest extends TestCase
             new FakeOutput(),
         );
 
-        $cmd->run(new Arguments(['parallel' => true], []));
+        $cmd->run(new Arguments([], []));
 
         self::assertSame(
-            'php artisan test --parallel',
+            'php artisan test',
             $docker->lastCommand(),
-            'must pass --parallel flag to artisan',
+            'must fall back to php artisan test when test-command absent',
+        );
+    }
+
+    #[Test]
+    public function usesTestCommandFromConfig(): void
+    {
+        $docker = new FakeDocker(running: true, exitCode: 0);
+        $cmd = new TestCommand(
+            $docker,
+            new FakeConfig([
+                'container' => 'reports',
+                'test-command' => 'vendor/bin/phpunit --testsuite=fast',
+            ]),
+            new FakeOutput(),
+        );
+
+        $cmd->run(new Arguments([], []));
+
+        self::assertSame(
+            'vendor/bin/phpunit --testsuite=fast',
+            $docker->lastCommand(),
+            'must run the command from config verbatim',
         );
     }
 

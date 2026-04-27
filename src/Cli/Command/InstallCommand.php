@@ -116,7 +116,7 @@ final readonly class InstallCommand implements Command
                 '( php "$GOBLIN/bin/commit-check" "$1" ) || exit $?',
             ]),
             InstallHook::PrePush => $this->wrap([
-                'php "$GOBLIN/bin/docker-test" --parallel --container=' . escapeshellarg($container) . ' || exit $?',
+                'php "$GOBLIN/bin/docker-test" --container=' . escapeshellarg($container) . ' || exit $?',
             ]),
             InstallHook::PostCheckout => $this->wrap([
                 'if [ "$3" = "1" ]; then',

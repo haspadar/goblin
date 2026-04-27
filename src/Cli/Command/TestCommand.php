@@ -38,8 +38,8 @@ final readonly class TestCommand implements Command
             return 0;
         }
 
-        $command = $args->flag('parallel')
-            ? 'php artisan test --parallel'
+        $command = $this->config->has('test-command')
+            ? $this->config->value('test-command')
             : 'php artisan test';
 
         $this->output->muted("Running tests in '{$container}'...");
