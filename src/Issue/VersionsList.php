@@ -46,7 +46,7 @@ final readonly class VersionsList
         foreach ($versions as $version) {
             $result[] = [
                 'version' => $version,
-                'branch' => $mapping->branchFor($version),
+                'branch' => $mapping->branchFor($version)->target,
             ];
         }
 
