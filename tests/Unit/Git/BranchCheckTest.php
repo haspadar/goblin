@@ -183,6 +183,188 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
+    public function passesWhenParentIsMasterWithMultipleBases(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('MSP-100-payment-retry', 'master'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/MSP-100' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'MSP 1.14.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'MSP 1.14.0', 'released' => false],
+                        ['name' => 'MSP 1.14.1', 'released' => false],
+                    ],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => ['beta', 'master'],
+                    ],
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'master as one of multiple bases must pass validation');
+    }
+
+    #[Test]
+    public function passesWhenParentIsBetaWithMultipleBases(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('MSP-101-refund', 'beta'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/MSP-101' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'MSP 1.14.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'MSP 1.14.0', 'released' => false],
+                        ['name' => 'MSP 1.14.1', 'released' => false],
+                    ],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => ['beta', 'master'],
+                    ],
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'beta as one of multiple bases must pass validation');
+    }
+
+    #[Test]
+    public function listsAllAllowedBasesInErrorMessage(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('MSP-102-settlement', 'stage'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/MSP-102' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'MSP 2.7.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'MSP 2.7.0', 'released' => false],
+                        ['name' => 'MSP 2.7.1', 'released' => false],
+                    ],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => ['beta', 'master'],
+                    ],
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage("requires base 'beta' or 'master', but branch was created from 'stage'");
+
+        $check->validate();
+    }
+
+    #[Test]
+    public function acceptsSingleBaseOverridingTarget(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('BRS-55-chargeback', 'master'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/BRS-55' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'BRS 3.0.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/BRS/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'BRS 3.0.0', 'released' => false],
+                        ['name' => 'BRS 3.0.1', 'released' => false],
+                    ],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => 'master',
+                    ],
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'string base must override target and accept that branch');
+    }
+
+    #[Test]
+    public function rejectsTargetWhenSingleBaseOverrides(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('BRS-56-dispute', 'beta'),
+            new FakeHttp([
+                'GET /rest/api/3/issue/BRS-56' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'BRS 4.1.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/BRS/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [
+                        ['name' => 'BRS 4.1.0', 'released' => false],
+                        ['name' => 'BRS 4.1.1', 'released' => false],
+                    ],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['main'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => 'master',
+                    ],
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage("requires base 'master', but branch was created from 'beta'");
+
+        $check->validate();
+    }
+
+    #[Test]
     public function skipsNonArrayVersionEntries(): void
     {
         $check = new BranchCheck(

@@ -18,7 +18,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('ACME 3.2.0'),
+            $rules->branchFor('ACME 3.2.0')->target,
             'empty rules must fall back to dev',
         );
     }
@@ -33,7 +33,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'develop',
-            $rules->branchFor('SHOP 8.0.0'),
+            $rules->branchFor('SHOP 8.0.0')->target,
             'unmatched versions must map to configured default branch',
         );
     }
@@ -51,7 +51,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'trunk',
-            $rules->branchFor('WIKI 1.0.0'),
+            $rules->branchFor('WIKI 1.0.0')->target,
             'single release not matching any rule must map to default',
         );
     }
@@ -69,7 +69,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'beta',
-            $rules->branchFor('PAY 5.0.1'),
+            $rules->branchFor('PAY 5.0.1')->target,
             'patch-1 version must map to beta',
         );
     }
@@ -87,7 +87,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('PAY 5.0.0'),
+            $rules->branchFor('PAY 5.0.0')->target,
             'patch-0 version must fall through to default when only beta rule exists',
         );
     }
@@ -106,7 +106,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'stage',
-            $rules->branchFor('CORE 9.3.0'),
+            $rules->branchFor('CORE 9.3.0')->target,
             'version matching interpolated template must map to stage',
         );
     }
@@ -124,7 +124,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'beta',
-            $rules->branchFor('APP 4.0.1'),
+            $rules->branchFor('APP 4.0.1')->target,
             'default sort desc must pick maximum among beta candidates',
         );
     }
@@ -142,7 +142,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'beta',
-            $rules->branchFor('GATE 8.2.1'),
+            $rules->branchFor('GATE 8.2.1')->target,
             'explicit sort desc must pick maximum among beta candidates',
         );
     }
@@ -160,7 +160,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('APP 2.0.1'),
+            $rules->branchFor('APP 2.0.1')->target,
             'non-max beta candidate must fall through to default',
         );
     }
@@ -178,7 +178,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'beta',
-            $rules->branchFor('SVC 1.1.1'),
+            $rules->branchFor('SVC 1.1.1')->target,
             'sort asc must pick minimum among beta candidates',
         );
     }
@@ -196,7 +196,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('SVC 2.1.1'),
+            $rules->branchFor('SVC 2.1.1')->target,
             'non-min beta candidate must fall through to default when sort asc',
         );
     }
@@ -214,7 +214,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('DATA 6.1.0'),
+            $rules->branchFor('DATA 6.1.0')->target,
             'template rule without preceding regex must not resolve vars',
         );
     }
@@ -233,7 +233,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'beta',
-            $rules->branchFor('HUB 20.5.1'),
+            $rules->branchFor('HUB 20.5.1')->target,
             'high semver numbers must match correctly',
         );
     }
@@ -251,7 +251,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'release',
-            $rules->branchFor('OPS 4.2.0'),
+            $rules->branchFor('OPS 4.2.0')->target,
             'impossible regex must leave all versions on default',
         );
     }
@@ -271,7 +271,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'hotfix',
-            $rules->branchFor('FIN 4.0.2'),
+            $rules->branchFor('FIN 4.0.2')->target,
             'third rule must match independently of beta/stage',
         );
     }
@@ -317,7 +317,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('NET 1.0.0'),
+            $rules->branchFor('NET 1.0.0')->target,
             'non-array rule entry must be silently skipped',
         );
     }
@@ -335,7 +335,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('SEC 2.0.0'),
+            $rules->branchFor('SEC 2.0.0')->target,
             'rule without match key must not crash',
         );
     }
@@ -353,7 +353,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'beta',
-            $rules->branchFor('FLOW 5.0.1'),
+            $rules->branchFor('FLOW 5.0.1')->target,
             'non-string sort must fall back to desc behavior',
         );
     }
@@ -368,7 +368,7 @@ final class BranchRulesTest extends TestCase
 
         self::assertSame(
             'dev',
-            $rules->branchFor('API 1.0.0'),
+            $rules->branchFor('API 1.0.0')->target,
             'non-string default must fall back to dev',
         );
     }
@@ -387,7 +387,7 @@ final class BranchRulesTest extends TestCase
         );
 
         $branches = array_map(
-            static fn(string $v): string => $rules->branchFor($v),
+            static fn(string $v): string => $rules->branchFor($v)->target,
             $versions,
         );
 
@@ -395,6 +395,126 @@ final class BranchRulesTest extends TestCase
             'master',
             $branches,
             'standard rules must never produce master branch',
+        );
+    }
+
+    #[Test]
+    public function defaultsBasesToTargetWhenBaseKeyOmitted(): void
+    {
+        $rules = new BranchRules(
+            ['MAIL 7.0.1'],
+            [
+                'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                'default' => 'dev',
+            ],
+        );
+
+        self::assertSame(
+            ['beta'],
+            $rules->branchFor('MAIL 7.0.1')->bases,
+            'omitted base key must default bases to [target]',
+        );
+    }
+
+    #[Test]
+    public function acceptsSingleBaseAsString(): void
+    {
+        $rules = new BranchRules(
+            ['NOTE 4.0.1'],
+            [
+                'beta' => [
+                    'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                    'base' => 'master',
+                ],
+                'default' => 'dev',
+            ],
+        );
+
+        self::assertSame(
+            ['master'],
+            $rules->branchFor('NOTE 4.0.1')->bases,
+            'string base must become a single-element list',
+        );
+    }
+
+    #[Test]
+    public function acceptsMultipleBasesAsList(): void
+    {
+        $rules = new BranchRules(
+            ['MSP 1.14.1'],
+            [
+                'beta' => [
+                    'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                    'base' => ['beta', 'master'],
+                ],
+                'default' => 'dev',
+            ],
+        );
+
+        self::assertSame(
+            ['beta', 'master'],
+            $rules->branchFor('MSP 1.14.1')->bases,
+            'list base must preserve order and values',
+        );
+    }
+
+    #[Test]
+    public function fallsBackWhenBaseIsEmptyString(): void
+    {
+        $rules = new BranchRules(
+            ['CRON 2.0.1'],
+            [
+                'beta' => [
+                    'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                    'base' => '',
+                ],
+                'default' => 'dev',
+            ],
+        );
+
+        self::assertSame(
+            ['beta'],
+            $rules->branchFor('CRON 2.0.1')->bases,
+            'empty string base must fall back to [target]',
+        );
+    }
+
+    #[Test]
+    public function fallsBackWhenBaseListHasNoStrings(): void
+    {
+        $rules = new BranchRules(
+            ['LINK 6.0.1'],
+            [
+                'beta' => [
+                    'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                    'base' => [1, 2, 3],
+                ],
+                'default' => 'dev',
+            ],
+        );
+
+        self::assertSame(
+            ['beta'],
+            $rules->branchFor('LINK 6.0.1')->bases,
+            'base list with no strings must fall back to [target]',
+        );
+    }
+
+    #[Test]
+    public function defaultRuleBasesEqualsDefaultBranch(): void
+    {
+        $rules = new BranchRules(
+            ['QUEUE 8.0.0'],
+            [
+                'beta' => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+                'default' => 'develop',
+            ],
+        );
+
+        self::assertSame(
+            ['develop'],
+            $rules->branchFor('QUEUE 8.0.0')->bases,
+            'fallback to default must produce bases equal to [default]',
         );
     }
 }
