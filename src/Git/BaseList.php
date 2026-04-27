@@ -23,13 +23,30 @@ final readonly class BaseList
      */
     public function toList(): array
     {
-        /** @psalm-var mixed $base */
-        $base = $this->rule['base'] ?? null;
-        $list = is_string($base)
-            ? [$base]
-            : (is_array($base) ? array_values(array_filter($base, 'is_string')) : []);
+        $list = $this->candidates();
         $filtered = array_values(array_filter($list, static fn(string $b): bool => $b !== ''));
 
         return $filtered === [] ? [$this->target] : $filtered;
+    }
+
+    /**
+     * Returns string candidates extracted from the rule's base entry.
+     *
+     * @return list<string>
+     */
+    private function candidates(): array
+    {
+        /** @psalm-var mixed $base */
+        $base = $this->rule['base'] ?? null;
+
+        if (is_string($base)) {
+            return [$base];
+        }
+
+        if (is_array($base)) {
+            return array_values(array_filter($base, 'is_string'));
+        }
+
+        return [];
     }
 }
