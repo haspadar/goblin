@@ -99,7 +99,10 @@ Version-to-branch mapping is configured via `branch-rules` in `.goblin.php`:
 
 ```php
 'branch-rules' => [
-    'beta'  => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+    'beta'  => [
+        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+        'base'  => ['beta', 'master'],
+    ],
     'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
     'default' => 'dev',
 ],
@@ -109,6 +112,11 @@ Rules are evaluated top-to-bottom. Each rule assigns one release to a branch:
 
 - **`match`** — regex pattern; supports `{var}` and `{var+N}` templates from earlier captures
 - **`sort`** — `desc` (default) picks max version, `asc` picks min
+- **`base`** — allowed parent branches the feature branch can fork from. Accepts a
+  string (single base) or list of strings. When omitted, the parent must equal the
+  rule key (e.g. `stage` rule above forks only from `stage`). Use a list to allow
+  multiple parents — e.g. a patch release that merges into `beta` but can fork
+  from either `beta` or `master`.
 - **`default`** — branch for all remaining unmatched releases
 
 ## Output

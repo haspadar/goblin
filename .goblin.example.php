@@ -7,7 +7,10 @@ return [
     'project-regex' => '/^([A-Z]+)-\d+/',
     'protected-branches' => ['main', 'dev', 'stage', 'beta', 'master'],
     'branch-rules' => [
-        'beta'  => ['match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/'],
+        'beta' => [
+            'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+            'base' => ['beta', 'master'],
+        ],
         'stage' => ['match' => '/{major}\.{minor+1}\.0$/'],
         'default' => 'dev',
     ],
