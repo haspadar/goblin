@@ -15,4 +15,5 @@ return [
     'gitlab-token' => '...',
     'container' => 'your-app',
     'compose-service' => 'app',
+    'test-command' => 'php artisan test --parallel',
 ];

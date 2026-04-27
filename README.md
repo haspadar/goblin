@@ -125,12 +125,23 @@ Add `--debug` to any command to log timestamped entries to stderr.
 ## Testing
 
 ```bash
-php bin/docker-test                                  # run tests in Docker
-php bin/docker-test --parallel                       # run tests in parallel
+php bin/docker-test                                  # run tests inside Docker
 php bin/docker-test --container=myapp                # target a specific container
+php bin/test                                         # run tests on the host (no Docker)
 ```
 
-The container name is taken from `--container`, falling back to `container` in `.goblin.php`. The generated `pre-push` hook passes `--container` automatically from the value resolved during `install`.
+Both binaries read the `test-command` key from `.goblin.php` and run it verbatim. When the key is absent, they fall back to `php artisan test`. Examples:
+
+```php
+'test-command' => 'php artisan test --parallel',     // Laravel parallel suite
+'test-command' => 'vendor/bin/phpunit --testsuite=fast',
+'test-command' => 'vendor/bin/pest',
+'test-command' => 'go test ./...',
+```
+
+`bin/docker-test` wraps the command in `docker exec <container>`. The container name comes from `--container`, falling back to `container` in `.goblin.php`. The generated `pre-push` hook passes `--container` automatically from the value resolved during `install`.
+
+`bin/test` runs the command directly on the host — useful when the project has no Docker setup or when you want to run tests against the local PHP version.
 
 ## Quality
 
