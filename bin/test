@@ -1,0 +1,56 @@
+#!/usr/bin/env php
+<?php
+
+declare(strict_types=1);
+
+require __DIR__ . '/../vendor/autoload.php';
+
+use Goblin\Cli\Arguments;
+use Goblin\Cli\Command\LocalTestCommand;
+use Goblin\Config\FileConfig;
+use Goblin\Config\MergedConfigFile;
+use Goblin\Config\ProjectConfigPath;
+use Goblin\GoblinException;
+use Goblin\Output\PrefixedOutput;
+use Goblin\Output\TextOutput;
+use Goblin\Shell\LocalShell;
+
+$options = [];
+$positionals = [];
+$parsingOptions = true;
+
+foreach (array_slice($argv, 1) as $arg) {
+    if ($parsingOptions && $arg === '--') {
+        $parsingOptions = false;
+
+        continue;
+    }
+
+    if ($parsingOptions && str_starts_with($arg, '--')) {
+        $parts = explode('=', substr($arg, 2), 2);
+        $options[$parts[0]] = $parts[1] ?? true;
+    } else {
+        $positionals[] = $arg;
+    }
+}
+
+$output = new PrefixedOutput('test: ', new TextOutput());
+$args = new Arguments($options, $positionals);
+$code = 1;
+
+try {
+    $basePath = dirname(__DIR__) . '/.goblin.php';
+    $cwd = getcwd();
+    $overlay = $cwd === false
+        ? null
+        : (new ProjectConfigPath($args->option('config'), $cwd))->value();
+    $config = new FileConfig((new MergedConfigFile($basePath, $overlay))->data());
+
+    $code = (new LocalTestCommand(new LocalShell($output), $config, $output))
+        ->run($args);
+} catch (GoblinException $e) {
+    fwrite(STDERR, $e->getMessage() . PHP_EOL);
+    $code = 1;
+}
+
+exit($code);
