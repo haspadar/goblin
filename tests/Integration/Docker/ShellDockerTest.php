@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Goblin\Tests\Integration\Docker;
 
 use Goblin\Docker\ShellDocker;
-use Goblin\Tests\Fake\FakeOutput;
 use Goblin\Tests\Fixture\WithDocker;
 use PHPUnit\Framework\Attributes\Test;
 use PHPUnit\Framework\TestCase;
@@ -17,7 +16,7 @@ final class ShellDockerTest extends TestCase
     {
         (new WithDocker())->run(function (): void {
             self::assertFalse(
-                (new ShellDocker(new FakeOutput()))->isRunning('goblin-nonexistent-' . bin2hex(random_bytes(4))),
+                (new ShellDocker())->isRunning('goblin-nonexistent-' . bin2hex(random_bytes(4))),
                 'must return false for a container that does not exist',
             );
         });
@@ -27,7 +26,7 @@ final class ShellDockerTest extends TestCase
     public function execReturnsNonZeroForMissingContainer(): void
     {
         (new WithDocker())->run(function (): void {
-            $exitCode = (new ShellDocker(new FakeOutput()))->exec(
+            $exitCode = (new ShellDocker())->exec(
                 'goblin-nonexistent-' . bin2hex(random_bytes(4)),
                 'true',
             );

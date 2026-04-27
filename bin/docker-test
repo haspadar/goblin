@@ -46,7 +46,7 @@ try {
         : (new ProjectConfigPath($args->option('config'), $cwd))->value();
     $config = new FileConfig((new MergedConfigFile($basePath, $overlay))->data());
 
-    $code = (new TestCommand(new ShellDocker($output), $config, $output))
+    $code = (new TestCommand(new ShellDocker(), $config, $output))
         ->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);

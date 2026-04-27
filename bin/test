@@ -46,7 +46,7 @@ try {
         : (new ProjectConfigPath($args->option('config'), $cwd))->value();
     $config = new FileConfig((new MergedConfigFile($basePath, $overlay))->data());
 
-    $code = (new LocalTestCommand(new LocalShell($output), $config, $output))
+    $code = (new LocalTestCommand(new LocalShell(), $config, $output))
         ->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);
