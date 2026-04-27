@@ -319,37 +319,37 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
-    public function targetBranchIsRejectedWhenStringBaseOverridesIt(): void
+    public function rejectsTargetWhenItIsNotPartOfDeclaredBases(): void
     {
-        $check = new BranchCheck(
-            new FakeGit('BILL-44-vat-rounding', 'qa'),
+        $rules = [
+            'release-train' => [
+                'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                'base' => ['hardening', 'preview'],
+            ],
+            'default' => 'core',
+        ];
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage("requires base 'hardening' or 'preview', but branch was created from 'release-train'");
+
+        (new BranchCheck(
+            new FakeGit('GROW-2105-funnel-tweak', 'release-train'),
             new FakeHttp([
-                'GET /rest/api/3/issue/BILL-44' => [
+                'GET /rest/api/3/issue/GROW-2105' => [
                     'fields' => [
-                        'fixVersions' => [['name' => 'BILL 9.2.1']],
+                        'fixVersions' => [['name' => 'GROW 25.10.1']],
                     ],
                 ],
-                'GET /rest/api/3/project/BILL/version?status=unreleased&orderBy=name&startAt=0' => [
-                    'values' => [['name' => 'BILL 9.2.1', 'released' => false]],
+                'GET /rest/api/3/project/GROW/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'GROW 25.10.1', 'released' => false]],
                 ],
             ]),
             new FakeConfig([
-                'protected-branches' => ['qa'],
+                'protected-branches' => ['hardening', 'preview', 'release-train'],
                 'project-regex' => '/^([A-Z]+)-\d+/',
-                'branch-rules' => [
-                    'qa' => [
-                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
-                        'base' => 'integration',
-                    ],
-                    'default' => 'mainline',
-                ],
+                'branch-rules' => $rules,
             ]),
-        );
-
-        $this->expectException(GoblinException::class);
-        $this->expectExceptionMessage("requires base 'integration', but branch was created from 'qa'");
-
-        $check->validate();
+        ))->validate();
     }
 
     #[Test]
