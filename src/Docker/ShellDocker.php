@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Goblin\Docker;
 
-use Goblin\Output\Output;
 use Override;
 
 /**
@@ -12,11 +11,6 @@ use Override;
  */
 final readonly class ShellDocker implements Docker
 {
-    /**
-     * Stores output channel.
-     */
-    public function __construct(private Output $output) {}
-
     #[Override]
     public function isRunning(string $container): bool
     {
@@ -32,12 +26,10 @@ final readonly class ShellDocker implements Docker
     #[Override]
     public function exec(string $container, string $command): int
     {
-        exec(
+        passthru(
             'docker exec ' . escapeshellarg($container) . ' ' . $command . ' 2>&1',
-            $lines,
             $code,
         );
-        $this->output->muted(implode("\n", $lines));
 
         return $code;
     }

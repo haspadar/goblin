@@ -6,14 +6,14 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use Goblin\Cli\Arguments;
-use Goblin\Cli\Command\TestCommand;
+use Goblin\Cli\Command\LocalTestCommand;
 use Goblin\Config\FileConfig;
 use Goblin\Config\MergedConfigFile;
 use Goblin\Config\ProjectConfigPath;
-use Goblin\Docker\ShellDocker;
 use Goblin\GoblinException;
 use Goblin\Output\PrefixedOutput;
 use Goblin\Output\TextOutput;
+use Goblin\Shell\LocalShell;
 
 $options = [];
 $positionals = [];
@@ -34,7 +34,7 @@ foreach (array_slice($argv, 1) as $arg) {
     }
 }
 
-$output = new PrefixedOutput('docker-test: ', new TextOutput());
+$output = new PrefixedOutput('test: ', new TextOutput());
 $args = new Arguments($options, $positionals);
 $code = 1;
 
@@ -46,7 +46,7 @@ try {
         : (new ProjectConfigPath($args->option('config'), $cwd))->value();
     $config = new FileConfig((new MergedConfigFile($basePath, $overlay))->data());
 
-    $code = (new TestCommand(new ShellDocker(), $config, $output))
+    $code = (new LocalTestCommand(new LocalShell(), $config, $output))
         ->run($args);
 } catch (GoblinException $e) {
     fwrite(STDERR, $e->getMessage() . PHP_EOL);

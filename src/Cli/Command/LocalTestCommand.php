@@ -6,20 +6,20 @@ namespace Goblin\Cli\Command;
 
 use Goblin\Cli\Arguments;
 use Goblin\Config\Config;
-use Goblin\Docker\Docker;
 use Goblin\Output\Output;
+use Goblin\Shell\Shell;
 use Override;
 
 /**
- * Runs tests inside a Docker container.
+ * Runs tests on the local host using the `test-command` config key.
  */
-final readonly class TestCommand implements Command
+final readonly class LocalTestCommand implements Command
 {
     /**
-     * Stores Docker client, configuration, and output.
+     * Stores shell, configuration, and output.
      */
     public function __construct(
-        private Docker $docker,
+        private Shell $shell,
         private Config $config,
         private Output $output,
     ) {}
@@ -27,23 +27,12 @@ final readonly class TestCommand implements Command
     #[Override]
     public function run(Arguments $args): int
     {
-        $fromFlag = $args->option('container');
-        $container = $fromFlag !== ''
-            ? $fromFlag
-            : $this->config->value('container');
-
-        if (!$this->docker->isRunning($container)) {
-            $this->output->muted("Container '{$container}' is not running. Tests skipped.");
-
-            return 0;
-        }
-
         $command = $this->config->has('test-command')
             ? $this->config->value('test-command')
             : 'php artisan test';
 
-        $this->output->muted("Running tests in '{$container}'...");
-        $code = $this->docker->exec($container, $command);
+        $this->output->muted("Running tests: {$command}");
+        $code = $this->shell->run($command);
 
         if ($code !== 0) {
             $this->output->error('Tests failed.');
