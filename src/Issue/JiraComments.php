@@ -12,7 +12,7 @@ final readonly class JiraComments
     /**
      * Stores raw comment entries.
      *
-     * @param list<mixed> $comments
+     * @param list<mixed> $comments Comments payload.
      */
     public function __construct(private array $comments) {}
 
@@ -41,7 +41,7 @@ final readonly class JiraComments
     /**
      * Renders a single comment entry.
      *
-     * @param array<string, mixed> $comment
+     * @param array<string, mixed> $comment Comment value.
      * @return array<string, mixed>
      */
     private function renderOne(array $comment): array

@@ -1,6 +1,6 @@
 # Goblin
 
-[![CI](https://github.com/haspadar/goblin/actions/workflows/piqule.yml/badge.svg)](https://github.com/haspadar/goblin/actions/workflows/piqule.yml)
+[![CI](https://github.com/haspadar/goblin/actions/workflows/sheriff.yml/badge.svg)](https://github.com/haspadar/goblin/actions/workflows/sheriff.yml)
 [![Coverage](https://codecov.io/gh/haspadar/goblin/branch/main/graph/badge.svg)](https://codecov.io/gh/haspadar/goblin)
 [![Mutation testing badge](https://img.shields.io/endpoint?style=flat&url=https%3A%2F%2Fbadge-api.stryker-mutator.io%2Fgithub.com%2Fhaspadar%2Fgoblin%2Fmain)](https://dashboard.stryker-mutator.io/reports/github.com/haspadar/goblin/main)
 [![PHPStan Level](https://img.shields.io/badge/PHPStan-Level%209-brightgreen)](https://phpstan.org/)
@@ -161,9 +161,9 @@ Both binaries read the `test-command` key from `.goblin.php` and run it verbatim
 
 ## Quality
 
-Powered by [Piqule](https://github.com/haspadar/piqule) — PHPStan 9, Psalm 1, PHP-CS-Fixer, Infection.
+Powered by [Sheriff](https://github.com/haspadar/sheriff) — PHPStan 9, Psalm 1, PHP-CS-Fixer, Infection.
 
 ```bash
-vendor/bin/piqule check    # run all checks
-vendor/bin/piqule fix      # auto-fix
+vendor/bin/sheriff check    # run all checks
+vendor/bin/sheriff fix      # auto-fix
 ```

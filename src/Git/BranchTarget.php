@@ -12,7 +12,10 @@ final readonly class BranchTarget
     /**
      * Stores merge target, allowed parents, and base-matching strategy.
      *
-     * @param non-empty-list<string> $bases
+     *
+     * @param string $target Target branch name.
+     * @param non-empty-list<string> $bases Allowed base branches.
+     * @param BaseMatch $match Base match mode.
      */
     public function __construct(
         public string $target,
@@ -22,6 +25,8 @@ final readonly class BranchTarget
 
     /**
      * Returns true when the given branch is an accepted base.
+     *
+     * @param string $branch Branch name to test.
      */
     public function acceptsBase(string $branch): bool
     {

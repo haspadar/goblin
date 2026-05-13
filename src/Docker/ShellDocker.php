@@ -15,7 +15,7 @@ final readonly class ShellDocker implements Docker
     public function isRunning(string $container): bool
     {
         exec(
-            "docker ps --format '{{.Names}}' | grep -qw " . escapeshellarg($container),
+            sprintf("docker ps --format '{{.Names}}' | grep -qw %s", escapeshellarg($container)),
             $lines,
             $code,
         );
@@ -27,7 +27,7 @@ final readonly class ShellDocker implements Docker
     public function exec(string $container, string $command): int
     {
         passthru(
-            'docker exec ' . escapeshellarg($container) . ' ' . $command . ' 2>&1',
+            sprintf('docker exec %s %s 2>&1', escapeshellarg($container), $command),
             $code,
         );
 

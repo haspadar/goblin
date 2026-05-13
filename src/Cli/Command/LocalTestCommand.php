@@ -17,6 +17,10 @@ final readonly class LocalTestCommand implements Command
 {
     /**
      * Stores shell, configuration, and output.
+     *
+     * @param Shell $shell Shell facade.
+     * @param Config $config Configuration access.
+     * @param Output $output Output channel.
      */
     public function __construct(
         private Shell $shell,

@@ -14,8 +14,8 @@ final readonly class JiraIssue implements Issue
     /**
      * Stores Jira payload and ADF field candidates.
      *
-     * @param array<string, mixed> $payload
-     * @param list<string> $descriptionFields
+     * @param array<string, mixed> $payload Raw issue payload.
+     * @param list<string> $descriptionFields ADF field name candidates.
      */
     public function __construct(private array $payload, private array $descriptionFields) {}
 
@@ -81,11 +81,9 @@ final readonly class JiraIssue implements Issue
         /** @psalm-var mixed $fields */
         $fields = $this->payload['fields'] ?? [];
 
-        /** @psalm-var array<string, mixed> $result */
-        $result = is_array($fields)
+        /** @psalm-var array<string, mixed> */
+        return is_array($fields)
             ? $fields
             : [];
-
-        return $result;
     }
 }

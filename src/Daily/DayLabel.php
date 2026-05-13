@@ -13,6 +13,8 @@ final readonly class DayLabel
 {
     /**
      * Stores the number of days ago.
+     *
+     * @param int $daysAgo Days offset from today.
      */
     public function __construct(private int $daysAgo) {}
 
@@ -27,7 +29,7 @@ final readonly class DayLabel
 
         $timestamp = strtotime("-{$this->daysAgo} days");
 
-        if ($timestamp === false) {
+        if (!is_int($timestamp)) {
             return "day-{$this->daysAgo}";
         }
 

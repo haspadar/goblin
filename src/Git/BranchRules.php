@@ -14,14 +14,16 @@ final readonly class BranchRules
     /**
      * Stores active releases and branch rules.
      *
-     * @param list<string> $releases
-     * @param array<string, mixed> $rules
+     *
+     * @param list<string> $releases Active releases.
+     * @param array<string, mixed> $rules Configured rules.
      */
     public function __construct(private array $releases, private array $rules) {}
 
     /**
      * Returns target branch for a Fix Version.
      *
+     * @param string $release Release identifier.
      * @throws GoblinException
      */
     public function branchFor(string $release): BranchTarget
@@ -57,7 +59,7 @@ final readonly class BranchRules
             $regex = $this->ruleRegex($rule);
             $matched = $regex->match($this->releases, $assigned, $vars);
 
-            if ($matched !== null) {
+            if ($matched !== '') {
                 $map[$matched] = new BranchTarget(
                     $branch,
                     (new BaseList($rule, $branch))->toList(),
@@ -82,7 +84,7 @@ final readonly class BranchRules
     /**
      * Creates RegexRule from a rule config entry.
      *
-     * @param array<array-key, mixed> $rule
+     * @param array<array-key, mixed> $rule Branch rule config.
      */
     private function ruleRegex(array $rule): RegexRule
     {
@@ -100,10 +102,13 @@ final readonly class BranchRules
     /**
      * Reads base-matching strategy from a rule config entry.
      *
-     * @param array<array-key, mixed> $rule
+     * @param array<array-key, mixed> $rule Branch rule config.
      */
     private function matchStrategy(array $rule): BaseMatch
     {
-        return ($rule['transitive'] ?? false) === true ? BaseMatch::Transitive : BaseMatch::Strict;
+        /** @psalm-var mixed $transitive */
+        $transitive = $rule['transitive'] ?? false;
+
+        return is_bool($transitive) && $transitive ? BaseMatch::Transitive : BaseMatch::Strict;
     }
 }

@@ -13,6 +13,8 @@ final readonly class ConfigFile
 {
     /**
      * Stores the path to the config file.
+     *
+     * @param string $path Filesystem path.
      */
     public function __construct(private string $path) {}
 

@@ -19,6 +19,9 @@ final readonly class DailyCommand implements Command
 {
     /**
      * Stores HTTP client and configuration.
+     *
+     * @param Http $http HTTP client.
+     * @param Config $config Configuration access.
      */
     public function __construct(private Http $http, private Config $config) {}
 

@@ -12,7 +12,7 @@ final readonly class DefaultBranchTarget
     /**
      * Stores the raw default entry from branch-rules config.
      *
-     * @param mixed $default
+     * @param mixed $default Branch name string or rule config array from branch-rules.
      */
     public function __construct(private mixed $default) {}
 
@@ -26,7 +26,9 @@ final readonly class DefaultBranchTarget
             $branch = $this->default['branch'] ?? 'dev';
             $name = is_string($branch) ? $branch : 'dev';
 
-            $match = ($this->default['transitive'] ?? false) === true ? BaseMatch::Transitive : BaseMatch::Strict;
+            /** @psalm-var mixed $transitive */
+            $transitive = $this->default['transitive'] ?? false;
+            $match = is_bool($transitive) && $transitive ? BaseMatch::Transitive : BaseMatch::Strict;
 
             return new BranchTarget($name, [$name], $match);
         }

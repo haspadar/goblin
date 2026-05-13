@@ -16,6 +16,8 @@ final readonly class DescriptionFields
 {
     /**
      * Stores HTTP client for Jira API requests.
+     *
+     * @param Http $http HTTP client.
      */
     public function __construct(private Http $http) {}
 
@@ -50,7 +52,7 @@ final readonly class DescriptionFields
     /**
      * Extracts field ID if it is a textarea custom field.
      *
-     * @param array<string, mixed> $field
+     * @param array<string, mixed> $field Field value.
      */
     private function textareaId(array $field): string
     {

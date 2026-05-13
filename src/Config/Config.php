@@ -16,6 +16,7 @@ interface Config
     /**
      * Checks whether a key exists in configuration.
      *
+     * @param string $name Name value.
      * @throws GoblinException
      */
     public function has(string $name): bool;
@@ -23,6 +24,7 @@ interface Config
     /**
      * Returns a single scalar value by key.
      *
+     * @param string $name Name value.
      * @throws GoblinException
      */
     public function value(string $name): string;
@@ -30,6 +32,7 @@ interface Config
     /**
      * Returns a list of strings by key.
      *
+     * @param string $name Name value.
      * @throws GoblinException
      * @return list<string>
      */
@@ -38,6 +41,7 @@ interface Config
     /**
      * Returns a nested associative array by key.
      *
+     * @param string $name Name value.
      * @throws GoblinException
      * @return array<string, mixed>
      */

@@ -15,6 +15,9 @@ final readonly class IssueKey
 {
     /**
      * Stores user input and optional project prefix.
+     *
+     * @param string $input Input value.
+     * @param string $project Project identifier.
      */
     public function __construct(private string $input, private string $project = '') {}
 
@@ -43,14 +46,14 @@ final readonly class IssueKey
      */
     private function withProject(string $number): string
     {
-        $project = strtoupper(trim($this->project));
+        $prefix = strtoupper(trim($this->project));
 
-        if ($project === '') {
+        if ($prefix === '') {
             throw new GoblinException(
                 "Cannot resolve numeric key \"{$number}\" without a project prefix",
             );
         }
 
-        return $project . '-' . $number;
+        return sprintf('%s-%s', $prefix, $number);
     }
 }

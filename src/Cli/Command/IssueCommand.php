@@ -22,6 +22,10 @@ final readonly class IssueCommand implements Command
 {
     /**
      * Stores HTTP client, git state, and configuration.
+     *
+     * @param Http $http HTTP client.
+     * @param Git $git Git facade.
+     * @param Config $config Configuration access.
      */
     public function __construct(private Http $http, private Git $git, private Config $config) {}
 
@@ -68,7 +72,7 @@ final readonly class IssueCommand implements Command
     /**
      * Encodes array as pretty JSON.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $data Raw data array.
      * @throws GoblinException
      */
     private function json(array $data): string

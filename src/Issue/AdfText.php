@@ -12,22 +12,22 @@ final readonly class AdfText
     /**
      * Stores the ADF node to render.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $root Root ADF node.
      */
-    public function __construct(private array $node) {}
+    public function __construct(private array $root) {}
 
     /**
      * Returns plain-text representation of the ADF node.
      */
     public function text(): string
     {
-        return $this->render($this->node);
+        return $this->render($this->root);
     }
 
     /**
      * Recursively renders a single ADF node.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $node ADF node.
      */
     private function render(array $node): string
     {
@@ -38,8 +38,8 @@ final readonly class AdfText
             'hardBreak' => "\n",
             'mention' => $this->string($this->attrs($node), 'text'),
             'inlineCard', 'embedCard' => $this->string($this->attrs($node), 'url'),
-            'paragraph', 'heading' => $this->children($node) . "\n\n",
-            'listItem' => '- ' . trim($this->children($node)) . "\n",
+            'paragraph', 'heading' => sprintf("%s\n\n", $this->children($node)),
+            'listItem' => sprintf("- %s\n", trim($this->children($node))),
             default => $this->children($node),
         };
     }
@@ -47,7 +47,7 @@ final readonly class AdfText
     /**
      * Joins rendered children of a container node.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $node ADF node.
      */
     private function children(array $node): string
     {
@@ -71,7 +71,7 @@ final readonly class AdfText
     /**
      * Extracts a string value from an array by key.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $data Raw data array.
      */
     private function string(array $data, string $key): string
     {
@@ -86,7 +86,7 @@ final readonly class AdfText
     /**
      * Extracts attrs sub-array from a node.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $node ADF node.
      * @return array<string, mixed>
      */
     private function attrs(array $node): array

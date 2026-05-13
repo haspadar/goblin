@@ -18,6 +18,10 @@ final readonly class BranchCheckCommand implements Command
 {
     /**
      * Stores git, HTTP client, and configuration.
+     *
+     * @param Git $git Git facade.
+     * @param Http $http HTTP client.
+     * @param Config $config Configuration access.
      */
     public function __construct(private Git $git, private Http $http, private Config $config) {}
 

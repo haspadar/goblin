@@ -16,6 +16,9 @@ final readonly class VersionsCommand implements Command
 {
     /**
      * Stores versions list and output.
+     *
+     * @param VersionsList $versions Versions adapter.
+     * @param Output $output Output channel.
      */
     public function __construct(private VersionsList $versions, private Output $output) {}
 
@@ -26,7 +29,7 @@ final readonly class VersionsCommand implements Command
         $verbose = $args->flag('verbose');
 
         if ($verbose) {
-            $this->output->muted('Versions: ' . count($pairs));
+            $this->output->muted(sprintf('Versions: %d', count($pairs)));
         }
 
         foreach ($pairs as $pair) {

@@ -12,8 +12,13 @@ use Goblin\Http\Http;
  */
 final readonly class ProjectVersions
 {
+    private const int DEFAULT_PAGE_SIZE = 50;
+
     /**
      * Stores HTTP client and project key.
+     *
+     * @param Http $http HTTP client.
+     * @param string $project Project identifier.
      */
     public function __construct(private Http $http, private string $project) {}
 
@@ -28,7 +33,7 @@ final readonly class ProjectVersions
         $allVersions = $this->fetchAllPages();
 
         $result = [];
-        $pattern = '/^' . preg_quote($this->project, '/') . '\s+\d+\.\d+\.\d+$/';
+        $pattern = sprintf('/^%s\s+\d+\.\d+\.\d+$/', preg_quote($this->project, '/'));
 
         /** @psalm-var mixed $version */
         foreach ($allVersions as $version) {
@@ -69,8 +74,14 @@ final readonly class ProjectVersions
 
             /** @psalm-var mixed $isLast */
             $isLast = $response['isLast'] ?? true;
-            $startAt += $this->pageSize($response);
-        } while ($isLast !== true);
+            $step = $this->pageSize($response);
+
+            if ($step <= 0) {
+                break;
+            }
+
+            $startAt += $step;
+        } while (!is_bool($isLast) || !$isLast);
 
         /** @psalm-var list<mixed> */
         return $allVersions;
@@ -93,15 +104,15 @@ final readonly class ProjectVersions
     /**
      * Extracts page size from response.
      *
-     * @param array<string, mixed> $response
+     * @param array<string, mixed> $response Response value.
      */
     private function pageSize(array $response): int
     {
         /** @psalm-var mixed $maxResults */
-        $maxResults = $response['maxResults'] ?? 50;
+        $maxResults = $response['maxResults'] ?? self::DEFAULT_PAGE_SIZE;
 
         return is_int($maxResults)
             ? $maxResults
-            : 50;
+            : self::DEFAULT_PAGE_SIZE;
     }
 }

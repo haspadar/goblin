@@ -15,6 +15,9 @@ final readonly class IssueFixVersion
 {
     /**
      * Stores HTTP client and issue key.
+     *
+     * @param Http $http HTTP client.
+     * @param string $issueKey Jira issue key.
      */
     public function __construct(private Http $http, private string $issueKey) {}
 
@@ -68,7 +71,7 @@ final readonly class IssueFixVersion
     {
         $pos = strpos($this->issueKey, '-');
 
-        return $pos !== false
+        return is_int($pos)
             ? substr($this->issueKey, 0, $pos)
             : $this->issueKey;
     }

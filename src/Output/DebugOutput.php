@@ -14,7 +14,8 @@ final readonly class DebugOutput implements Output
     /**
      * Wraps an existing output with debug logging.
      *
-     * @param resource $stderr
+     * @param Output $origin Wrapped output channel.
+     * @param resource $stderr Standard error stream.
      */
     public function __construct(private Output $origin, private mixed $stderr = STDERR) {}
 
@@ -53,7 +54,7 @@ final readonly class DebugOutput implements Output
     {
         fwrite(
             $this->stderr,
-            '[' . date('H:i:s') . "] [{$level}] {$text}" . PHP_EOL,
+            sprintf('[%s] [%s] %s%s', date('H:i:s'), $level, $text, PHP_EOL),
         );
     }
 }

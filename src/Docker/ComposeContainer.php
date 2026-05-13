@@ -15,6 +15,9 @@ final readonly class ComposeContainer
 
     /**
      * Stores project root and compose service key to read.
+     *
+     * @param string $projectRoot Project root path.
+     * @param string $service Compose service name.
      */
     public function __construct(private string $projectRoot, private string $service) {}
 
@@ -28,7 +31,7 @@ final readonly class ComposeContainer
         $path = $this->composePath();
         $contents = @file_get_contents($path);
 
-        if ($contents === false) {
+        if (!is_string($contents)) {
             throw new GoblinException("Cannot read compose file: {$path}");
         }
 
@@ -43,7 +46,7 @@ final readonly class ComposeContainer
     private function composePath(): string
     {
         foreach (self::FILES as $file) {
-            $path = $this->projectRoot . '/' . $file;
+            $path = sprintf('%s/%s', $this->projectRoot, $file);
 
             if (is_file($path)) {
                 return $path;
@@ -60,16 +63,27 @@ final readonly class ComposeContainer
      */
     private function readContainerName(ComposeLines $lines, string $path): string
     {
-        $services = ($lines->sliceAfter('/^services:\s*$/')
-            ?? throw new GoblinException("No 'services:' block in {$path}"))
-            ->takeNested(0);
+        $servicesRaw = $lines->sliceAfter('/^services:\s*$/');
 
-        $servicePattern = '/^(\s+)' . preg_quote($this->service, '/') . ':\s*$/';
-        $serviceIndent = $services->atFirstIndent()->firstCapturedIndent($servicePattern)
-            ?? throw new GoblinException("Service '{$this->service}' not found in {$path}");
+        if ($servicesRaw->all() === []) {
+            throw new GoblinException("No 'services:' block in {$path}");
+        }
 
-        $directPattern = '/^' . str_repeat(' ', $serviceIndent) . preg_quote($this->service, '/') . ':\s*$/';
-        $body = ($services->sliceAfter($directPattern) ?? new ComposeLines([]))
+        $services = $servicesRaw->takeNested(0);
+        $servicePattern = sprintf('/^(\s+)%s:\s*$/', preg_quote($this->service, '/'));
+
+        try {
+            $serviceIndent = $services->atFirstIndent()->firstCapturedIndent($servicePattern);
+        } catch (GoblinException) {
+            throw new GoblinException("Service '{$this->service}' not found in {$path}");
+        }
+
+        $directPattern = sprintf(
+            '/^%s%s:\s*$/',
+            str_repeat(' ', $serviceIndent),
+            preg_quote($this->service, '/'),
+        );
+        $body = $services->sliceAfter($directPattern)
             ->takeNested($serviceIndent)
             ->atFirstIndent();
 
@@ -109,7 +123,7 @@ final readonly class ComposeContainer
     {
         $split = preg_split('/\R/', $contents);
 
-        if ($split === false) {
+        if (!is_array($split)) {
             return [];
         }
 

@@ -29,11 +29,10 @@ final readonly class ShellGit implements Git
     {
         $branch = $this->currentBranch();
         $reflog = $this->exec('git reflog --date=iso');
-        $pattern = '/checkout: moving from ([^ ]+) to '
-            . preg_quote($branch, '/') . '$/m';
+        $pattern = sprintf('/checkout: moving from ([^ ]+) to %s$/m', preg_quote($branch, '/'));
         $count = preg_match_all($pattern, $reflog, $m);
 
-        if ($count === 0 || $count === false) {
+        if (!is_int($count) || $count === 0) {
             throw new GoblinException('Failed to determine parent branch');
         }
 
@@ -55,7 +54,7 @@ final readonly class ShellGit implements Git
     #[Override]
     public function isAncestor(string $branch): bool
     {
-        $cmd = 'git merge-base --is-ancestor ' . escapeshellarg($branch) . ' HEAD';
+        $cmd = sprintf('git merge-base --is-ancestor %s HEAD', escapeshellarg($branch));
         exec($cmd, $_lines, $code);
 
         if ($code === 0) {

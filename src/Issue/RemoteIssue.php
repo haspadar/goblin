@@ -15,28 +15,32 @@ final readonly class RemoteIssue implements Issue
 {
     /**
      * Stores HTTP client, issue key, and field discovery.
+     *
+     * @param Http $http HTTP client.
+     * @param IssueKey $issueKey Jira issue key.
+     * @param DescriptionFields $fields Description field discovery.
      */
     public function __construct(
         private Http $http,
-        private IssueKey $key,
+        private IssueKey $issueKey,
         private DescriptionFields $fields,
     ) {}
 
     #[Override]
     public function details(): array
     {
-        $key = $this->key->value();
+        $key = $this->issueKey->value();
         $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
 
         /** @psalm-var mixed $raw */
         $raw = $payload['fields'] ?? [];
 
-        /** @psalm-var array<string, mixed> $fields */
-        $fields = is_array($raw)
+        /** @psalm-var array<string, mixed> $payloadFields */
+        $payloadFields = is_array($raw)
             ? $raw
             : [];
-        $fields['comment'] = ['comments' => $this->comments($key)];
-        $payload['fields'] = $fields;
+        $payloadFields['comment'] = ['comments' => $this->comments($key)];
+        $payload['fields'] = $payloadFields;
 
         return (new JiraIssue($payload, $this->fields->names()))->details();
     }
@@ -44,7 +48,7 @@ final readonly class RemoteIssue implements Issue
     #[Override]
     public function description(): string
     {
-        $key = $this->key->value();
+        $key = $this->issueKey->value();
         $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
 
         return (new JiraIssue($payload, $this->fields->names()))->description();
@@ -55,7 +59,7 @@ final readonly class RemoteIssue implements Issue
     {
         return $this->http->json(
             'GET',
-            "/rest/api/3/issue/{$this->key->value()}",
+            "/rest/api/3/issue/{$this->issueKey->value()}",
         );
     }
 

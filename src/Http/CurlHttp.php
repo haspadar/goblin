@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Goblin\Http;
 
+use CurlHandle;
 use Goblin\GoblinException;
 use Override;
 
@@ -12,17 +13,23 @@ use Override;
  */
 final readonly class CurlHttp implements Http
 {
+    private const int HTTP_BAD_REQUEST = 400;
+
     /**
      * Configures base URL and Basic Auth credentials.
+     *
+     * @param string $url Endpoint URL.
+     * @param string $user Username for authentication.
+     * @param string $token Authentication token.
      */
     public function __construct(private string $url, private string $user, private string $token) {}
 
     #[Override]
     public function json(string $method, string $path, array $body = []): array
     {
-        $curl = curl_init($this->url . $path);
+        $curl = curl_init(sprintf('%s%s', $this->url, $path));
 
-        if ($curl === false) {
+        if (!$curl instanceof CurlHandle) {
             throw new GoblinException("Failed to init curl for {$path}");
         }
 
@@ -36,7 +43,7 @@ final readonly class CurlHttp implements Http
         if ($body !== []) {
             $encoded = json_encode($body);
 
-            if ($encoded === false) {
+            if (!is_string($encoded)) {
                 throw new GoblinException("Failed to encode body: {$method} {$path}");
             }
 
@@ -51,7 +58,7 @@ final readonly class CurlHttp implements Http
             throw new GoblinException("Request failed: {$method} {$path}");
         }
 
-        if ($code >= 400) {
+        if ($code >= self::HTTP_BAD_REQUEST) {
             throw new GoblinException("HTTP {$code}: {$method} {$path}");
         }
 

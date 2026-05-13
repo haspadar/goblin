@@ -18,7 +18,9 @@ final readonly class VersionsList
     /**
      * Stores HTTP client, project key, and branch rules.
      *
-     * @param array<string, mixed> $rules
+     * @param Http $http HTTP client.
+     * @param string $project Project identifier.
+     * @param array<string, mixed> $rules Configured rules.
      */
     public function __construct(
         private Http $http,

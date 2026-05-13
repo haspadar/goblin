@@ -16,13 +16,16 @@ final readonly class GitLabMergeRequest
 {
     /**
      * Stores HTTP client and encoded project path.
+     *
+     * @param Http $http HTTP client.
+     * @param string $project Project identifier.
      */
     public function __construct(private Http $http, private string $project) {}
 
     /**
      * Creates a new merge request.
      *
-     * @param array<string, string> $params
+     * @param array<string, string> $params Request params payload.
      * @throws GoblinException
      * @return array<string, mixed>
      */
@@ -34,6 +37,7 @@ final readonly class GitLabMergeRequest
     /**
      * Returns a single merge request by IID.
      *
+     * @param int $iid Merge request internal id.
      * @throws GoblinException
      * @return array<string, mixed>
      */
@@ -45,7 +49,7 @@ final readonly class GitLabMergeRequest
     /**
      * Lists merge requests with optional query filters.
      *
-     * @param array<string, mixed> $filters
+     * @param array<string, mixed> $filters Query filters payload.
      * @throws GoblinException
      * @return array<string, mixed>
      */
@@ -54,7 +58,7 @@ final readonly class GitLabMergeRequest
         $clean = array_filter($filters, static fn(mixed $v): bool => $v !== '');
         $query = $clean === []
             ? ''
-            : '?' . http_build_query($clean);
+            : sprintf('?%s', http_build_query($clean));
 
         return $this->http->json('GET', $this->path($query));
     }
@@ -62,7 +66,8 @@ final readonly class GitLabMergeRequest
     /**
      * Updates a merge request by IID.
      *
-     * @param array<string, string> $changes
+     * @param int $iid Merge request internal id.
+     * @param array<string, string> $changes Field changes payload.
      * @throws GoblinException
      * @return array<string, mixed>
      */
@@ -76,6 +81,6 @@ final readonly class GitLabMergeRequest
      */
     private function path(string $suffix = ''): string
     {
-        return '/projects/' . rawurlencode($this->project) . '/merge_requests' . $suffix;
+        return sprintf('/projects/%s/merge_requests%s', rawurlencode($this->project), $suffix);
     }
 }

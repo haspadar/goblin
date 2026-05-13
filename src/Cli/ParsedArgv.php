@@ -11,10 +11,16 @@ namespace Goblin\Cli;
  */
 final readonly class ParsedArgv
 {
+    private const int COMMAND_OFFSET = 2;
+
+    private const int OPTION_PREFIX_LENGTH = 2;
+
+    private const int OPTION_SPLIT_LIMIT = 2;
+
     /**
      * Stores raw argv array.
      *
-     * @param list<string> $argv
+     * @param list<string> $argv Process arguments.
      */
     public function __construct(private array $argv) {}
 
@@ -36,7 +42,7 @@ final readonly class ParsedArgv
 
         $parsingOptions = true;
 
-        foreach (array_slice($this->argv, 2) as $arg) {
+        foreach (array_slice($this->argv, self::COMMAND_OFFSET) as $arg) {
             if ($parsingOptions && $arg === '--') {
                 $parsingOptions = false;
 
@@ -44,7 +50,7 @@ final readonly class ParsedArgv
             }
 
             if ($parsingOptions && str_starts_with($arg, '--')) {
-                $parts = explode('=', substr($arg, 2), 2);
+                $parts = explode('=', substr($arg, self::OPTION_PREFIX_LENGTH), self::OPTION_SPLIT_LIMIT);
                 $options[$parts[0]] = $parts[1] ?? true;
             } else {
                 $positionals[] = $arg;

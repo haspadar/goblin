@@ -15,6 +15,8 @@ final readonly class ProjectPath
 {
     /**
      * Stores the raw remote URL.
+     *
+     * @param string $remote Raw git remote URL.
      */
     public function __construct(private string $remote) {}
 
