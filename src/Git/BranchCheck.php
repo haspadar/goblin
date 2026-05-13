@@ -50,13 +50,32 @@ final readonly class BranchCheck
         $rule = (new BranchRules($versions, $rules))->branchFor($fixVersion);
         $parent = $this->git->parentBranch();
 
-        if (!$rule->acceptsBase($parent)) {
-            $expected = implode("' or '", $rule->bases);
-
-            throw new GoblinException(
-                "Fix Version '{$fixVersion}' requires base '{$expected}', but branch was created from '{$parent}'",
-            );
+        if ($rule->acceptsBase($parent) || ($rule->match === BaseMatch::Transitive && $this->hasAncestorBase($rule->bases))) {
+            return;
         }
+
+        $expected = implode("' or '", $rule->bases);
+
+        throw new GoblinException(
+            "Fix Version '{$fixVersion}' requires base '{$expected}', but branch was created from '{$parent}'",
+        );
+    }
+
+    /**
+     * Returns true when any declared base is an ancestor of HEAD.
+     *
+     * @param non-empty-list<string> $bases
+     * @throws GoblinException
+     */
+    private function hasAncestorBase(array $bases): bool
+    {
+        foreach ($bases as $base) {
+            if ($this->git->isAncestor($base)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

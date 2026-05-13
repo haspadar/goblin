@@ -353,6 +353,133 @@ final class BranchCheckTest extends TestCase
     }
 
     #[Test]
+    public function transitiveDefaultAcceptsForkOffSiblingFeatureBranch(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('MSP-1420-pricing-page', 'MSP-1369-deposit-flow', ancestors: ['dev']),
+            new FakeHttp([
+                'GET /rest/api/3/issue/MSP-1420' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'MSP 1.16.0']],
+                    ],
+                ],
+                'GET /rest/api/3/project/MSP/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'MSP 1.16.0', 'released' => false]],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['dev'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => ['beta', 'master'],
+                    ],
+                    'default' => ['branch' => 'dev', 'transitive' => true],
+                ],
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'transitive default must accept fork off a sibling feature branch rooted in dev');
+    }
+
+    #[Test]
+    public function transitiveRuleRejectsBranchWithoutAnyDeclaredAncestor(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('SHOP-77-checkout', 'experimental', ancestors: ['feature-spike']),
+            new FakeHttp([
+                'GET /rest/api/3/issue/SHOP-77' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'SHOP 9.5.0']],
+                    ],
+                ],
+                'GET /rest/api/3/project/SHOP/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'SHOP 9.5.0', 'released' => false]],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['dev'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'default' => ['branch' => 'dev', 'transitive' => true],
+                ],
+            ]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage("requires base 'dev', but branch was created from 'experimental'");
+
+        $check->validate();
+    }
+
+    #[Test]
+    public function nonTransitiveRuleIgnoresAncestryEvenWhenBaseIsAncestor(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('PAY-12-refund', 'PAY-10-helpers', ancestors: ['dev']),
+            new FakeHttp([
+                'GET /rest/api/3/issue/PAY-12' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'PAY 4.2.0']],
+                    ],
+                ],
+                'GET /rest/api/3/project/PAY/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'PAY 4.2.0', 'released' => false]],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['dev'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $this->expectException(GoblinException::class);
+        $this->expectExceptionMessage("requires base 'dev', but branch was created from 'PAY-10-helpers'");
+
+        $check->validate();
+    }
+
+    #[Test]
+    public function transitiveNamedRuleAcceptsForkOffPeerWhenBetaIsAncestor(): void
+    {
+        $check = new BranchCheck(
+            new FakeGit('CRS-301-rate-tweak', 'CRS-298-prep', ancestors: ['beta']),
+            new FakeHttp([
+                'GET /rest/api/3/issue/CRS-301' => [
+                    'fields' => [
+                        'fixVersions' => [['name' => 'CRS 3.4.1']],
+                    ],
+                ],
+                'GET /rest/api/3/project/CRS/version?status=unreleased&orderBy=name&startAt=0' => [
+                    'values' => [['name' => 'CRS 3.4.1', 'released' => false]],
+                ],
+            ]),
+            new FakeConfig([
+                'protected-branches' => ['beta'],
+                'project-regex' => '/^([A-Z]+)-\d+/',
+                'branch-rules' => [
+                    'beta' => [
+                        'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                        'base' => ['beta'],
+                        'transitive' => true,
+                    ],
+                    'default' => 'dev',
+                ],
+            ]),
+        );
+
+        $check->validate();
+
+        self::assertTrue(true, 'transitive named rule must accept fork off a peer when declared base is an ancestor');
+    }
+
+    #[Test]
     public function skipsNonArrayVersionEntries(): void
     {
         $check = new BranchCheck(
