@@ -117,9 +117,15 @@ Rules are evaluated top-to-bottom. Each rule assigns one release to a branch:
   rule key (e.g. `stage` rule above forks only from `stage`). Use a list to allow
   multiple parents — e.g. a patch release that merges into `beta` but can fork
   from either `beta` or `master`.
-- **`default`** — branch for all remaining unmatched releases; its only accepted
-  parent is the named default branch itself (e.g. `'default' => 'dev'` requires
-  the parent to be `dev`)
+- **`transitive`** — when `true`, accepts any branch whose declared `base` is an
+  ancestor of the current HEAD, not only a direct parent. Useful when a feature is
+  branched from a sibling task that already sits on the release line (e.g. forking
+  `MSP-1420` off `MSP-1369` which itself was created from `dev`). With
+  `transitive: true` and no explicit `base`, the rule's target branch is used as
+  the sole ancestor candidate.
+- **`default`** — branch for all remaining unmatched releases. Accepts either a
+  string (`'default' => 'dev'` — the parent must be `dev`) or a map to enable
+  `transitive` on the fallback: `'default' => ['branch' => 'dev', 'transitive' => true]`.
 
 ## Output
 
