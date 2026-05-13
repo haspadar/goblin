@@ -11,10 +11,14 @@ use Goblin\Git\Git;
  */
 final readonly class FakeGit implements Git
 {
+    /**
+     * @param list<string> $ancestors
+     */
     public function __construct(
         private string $branch,
         private string $parent = 'main',
         private string $remote = 'git@gitlab.example.com:group/project.git',
+        private array $ancestors = [],
     ) {}
 
     public function currentBranch(): string
@@ -30,5 +34,10 @@ final readonly class FakeGit implements Git
     public function remote(): string
     {
         return $this->remote;
+    }
+
+    public function isAncestor(string $branch): bool
+    {
+        return in_array($branch, $this->ancestors, true);
     }
 }

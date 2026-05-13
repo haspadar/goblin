@@ -52,6 +52,23 @@ final readonly class ShellGit implements Git
         return $remote;
     }
 
+    #[Override]
+    public function isAncestor(string $branch): bool
+    {
+        $cmd = 'git merge-base --is-ancestor ' . escapeshellarg($branch) . ' HEAD';
+        exec($cmd, $_lines, $code);
+
+        if ($code === 0) {
+            return true;
+        }
+
+        if ($code === 1) {
+            return false;
+        }
+
+        throw new GoblinException("Command failed ({$code}): {$cmd}");
+    }
+
     /**
      * Executes a shell command and returns its output.
      *

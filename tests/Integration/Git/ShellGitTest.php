@@ -33,4 +33,13 @@ final class ShellGitTest extends TestCase
             'branch name must not contain CR or LF',
         );
     }
+
+    #[Test]
+    public function recognisesHeadAsItsOwnAncestor(): void
+    {
+        self::assertTrue(
+            (new ShellGit())->isAncestor('HEAD'),
+            'HEAD must be reported as ancestor of itself',
+        );
+    }
 }

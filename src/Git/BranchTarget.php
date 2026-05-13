@@ -10,13 +10,14 @@ namespace Goblin\Git;
 final readonly class BranchTarget
 {
     /**
-     * Stores merge target and list of allowed parent branches.
+     * Stores merge target, allowed parents, and base-matching strategy.
      *
      * @param non-empty-list<string> $bases
      */
     public function __construct(
         public string $target,
         public array $bases,
+        public BaseMatch $match = BaseMatch::Strict,
     ) {}
 
     /**
