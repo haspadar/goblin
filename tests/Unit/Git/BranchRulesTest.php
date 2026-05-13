@@ -501,6 +501,27 @@ final class BranchRulesTest extends TestCase
     }
 
     #[Test]
+    public function keepsOnlyStringEntriesWhenBaseListIsMixed(): void
+    {
+        $rules = new BranchRules(
+            ['BRIDGE 9.4.1'],
+            [
+                'beta' => [
+                    'match' => '/(?P<major>\d+)\.(?P<minor>\d+)\.1$/',
+                    'base' => ['beta', 1, 'master', null],
+                ],
+                'default' => 'dev',
+            ],
+        );
+
+        self::assertSame(
+            ['beta', 'master'],
+            $rules->branchFor('BRIDGE 9.4.1')->bases,
+            'mixed base list must keep only string entries in original order',
+        );
+    }
+
+    #[Test]
     public function defaultRuleBasesEqualsDefaultBranch(): void
     {
         $rules = new BranchRules(
