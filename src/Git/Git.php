@@ -33,4 +33,11 @@ interface Git
      * @throws GoblinException
      */
     public function remote(): string;
+
+    /**
+     * Returns true when the given branch is an ancestor of HEAD.
+     *
+     * @throws GoblinException
+     */
+    public function isAncestor(string $branch): bool;
 }
