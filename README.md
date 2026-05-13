@@ -117,7 +117,9 @@ Rules are evaluated top-to-bottom. Each rule assigns one release to a branch:
   rule key (e.g. `stage` rule above forks only from `stage`). Use a list to allow
   multiple parents — e.g. a patch release that merges into `beta` but can fork
   from either `beta` or `master`.
-- **`default`** — branch for all remaining unmatched releases
+- **`default`** — branch for all remaining unmatched releases; its only accepted
+  parent is the named default branch itself (e.g. `'default' => 'dev'` requires
+  the parent to be `dev`)
 
 ## Output
 
