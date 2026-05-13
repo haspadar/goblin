@@ -13,9 +13,6 @@ use Goblin\Http\Http;
  */
 final readonly class BranchCheck
 {
-    /**
-     * Stores dependencies for branch validation.
-     */
     public function __construct(
         private Git $git,
         private Http $http,
