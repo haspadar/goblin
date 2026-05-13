@@ -58,14 +58,17 @@ final readonly class BranchRules
             $matched = $regex->match($this->releases, $assigned, $vars);
 
             if ($matched !== null) {
-                $map[$matched] = new BranchTarget($branch, (new BaseList($rule, $branch))->toList());
+                $map[$matched] = new BranchTarget(
+                    $branch,
+                    (new BaseList($rule, $branch))->toList(),
+                    $this->matchStrategy($rule),
+                );
                 $assigned[$matched] = $branch;
                 $vars = array_merge($vars, $regex->vars($matched, $vars));
             }
         }
 
-        $default = $this->defaultBranch();
-        $fallback = new BranchTarget($default, [$default]);
+        $fallback = (new DefaultBranchTarget($this->rules['default'] ?? 'dev'))->toBranchTarget();
 
         foreach ($this->releases as $release) {
             if (!array_key_exists($release, $map)) {
@@ -95,13 +98,12 @@ final readonly class BranchRules
     }
 
     /**
-     * Returns default branch name from rules.
+     * Reads base-matching strategy from a rule config entry.
+     *
+     * @param array<array-key, mixed> $rule
      */
-    private function defaultBranch(): string
+    private function matchStrategy(array $rule): BaseMatch
     {
-        /** @psalm-var mixed $default */
-        $default = $this->rules['default'] ?? 'dev';
-
-        return is_string($default) ? $default : 'dev';
+        return ($rule['transitive'] ?? false) === true ? BaseMatch::Transitive : BaseMatch::Strict;
     }
 }
