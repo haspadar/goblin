@@ -380,9 +380,9 @@ final class BranchCheckTest extends TestCase
             ]),
         );
 
-        $check->validate();
+        $this->expectNotToPerformAssertions();
 
-        self::assertTrue(true, 'transitive default must accept fork off a sibling feature branch rooted in dev');
+        $check->validate();
     }
 
     #[Test]
@@ -474,9 +474,9 @@ final class BranchCheckTest extends TestCase
             ]),
         );
 
-        $check->validate();
+        $this->expectNotToPerformAssertions();
 
-        self::assertTrue(true, 'transitive named rule must accept fork off a peer when declared base is an ancestor');
+        $check->validate();
     }
 
     #[Test]
