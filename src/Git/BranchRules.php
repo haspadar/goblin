@@ -24,7 +24,7 @@ final readonly class BranchRules
      *
      * @throws GoblinException
      */
-    public function branchFor(string $release): string
+    public function branchFor(string $release): BranchTarget
     {
         $map = $this->buildMap();
 
@@ -38,14 +38,15 @@ final readonly class BranchRules
     }
 
     /**
-     * Builds release to branch mapping.
+     * Builds release to BranchTarget mapping.
      *
      * @throws GoblinException
-     * @return array<string, string>
+     * @return array<string, BranchTarget>
      */
     private function buildMap(): array
     {
         $map = [];
+        $assigned = [];
         $vars = [];
 
         foreach ($this->rules as $branch => $rule) {
@@ -54,19 +55,21 @@ final readonly class BranchRules
             }
 
             $regex = $this->ruleRegex($rule);
-            $matched = $regex->match($this->releases, $map, $vars);
+            $matched = $regex->match($this->releases, $assigned, $vars);
 
             if ($matched !== null) {
-                $map[$matched] = $branch;
+                $map[$matched] = new BranchTarget($branch, (new BaseList($rule, $branch))->toList());
+                $assigned[$matched] = $branch;
                 $vars = array_merge($vars, $regex->vars($matched, $vars));
             }
         }
 
         $default = $this->defaultBranch();
+        $fallback = new BranchTarget($default, [$default]);
 
         foreach ($this->releases as $release) {
             if (!array_key_exists($release, $map)) {
-                $map[$release] = $default;
+                $map[$release] = $fallback;
             }
         }
 
