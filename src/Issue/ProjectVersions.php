@@ -62,11 +62,11 @@ final readonly class ProjectVersions
      */
     private function fetchAllPages(): array
     {
-        $offset = 0;
+        $startAt = 0;
         $allVersions = [];
 
         do {
-            $response = $this->fetchPage($offset);
+            $response = $this->fetchPage($startAt);
 
             /** @psalm-var mixed $values */
             $values = $response['values'] ?? [];
@@ -74,7 +74,13 @@ final readonly class ProjectVersions
 
             /** @psalm-var mixed $isLast */
             $isLast = $response['isLast'] ?? true;
-            $offset += $this->pageSize($response);
+            $step = $this->pageSize($response);
+
+            if ($step <= 0) {
+                break;
+            }
+
+            $startAt += $step;
         } while (!is_bool($isLast) || !$isLast);
 
         /** @psalm-var list<mixed> */
@@ -87,11 +93,11 @@ final readonly class ProjectVersions
      * @throws GoblinException
      * @return array<string, mixed>
      */
-    private function fetchPage(int $offset): array
+    private function fetchPage(int $startAt): array
     {
         return $this->http->json(
             'GET',
-            "/rest/api/3/project/{$this->project}/version?status=unreleased&orderBy=name&startAt={$offset}",
+            "/rest/api/3/project/{$this->project}/version?status=unreleased&orderBy=name&startAt={$startAt}",
         );
     }
 

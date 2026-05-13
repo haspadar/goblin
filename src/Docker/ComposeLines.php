@@ -45,16 +45,16 @@ final readonly class ComposeLines
     }
 
     /**
-     * Returns a new ComposeLines containing the prefix whose indent is strictly greater than $parent.
+     * Returns a new ComposeLines containing the prefix whose indent is strictly greater than $parentIndent.
      *
-     * @param int $parent Parent indent string.
+     * @param int $parentIndent Parent indent width in spaces.
      */
-    public function takeNested(int $parent): self
+    public function takeNested(int $parentIndent): self
     {
         $out = [];
 
         foreach ($this->lines as $line) {
-            if ($this->indentOf($line) <= $parent) {
+            if ($this->indentOf($line) <= $parentIndent) {
                 break;
             }
 

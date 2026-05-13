@@ -12,8 +12,7 @@ final readonly class DefaultBranchTarget
     /**
      * Stores the raw default entry from branch-rules config.
      *
-     *
-     * @param mixed $default Default branch name.
+     * @param mixed $default Branch name string or rule config array from branch-rules.
      */
     public function __construct(private mixed $default) {}
 

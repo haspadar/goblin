@@ -2,6 +2,10 @@
 override:
     ci.pr.max_lines_changed: 700
     phpmetrics.coupling.max_afferent: 30
+    phpstan.parameters:
+        haspadar:
+            parameterName:
+                pattern: '^(id|[a-z][a-zA-Z]{2,})$'
 append:
     phpstan.parameters:
         haspadar:

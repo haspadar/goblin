@@ -21,8 +21,6 @@ final readonly class InstallCommand implements Command
 {
     private const string DEFAULT_SERVICE = 'app';
 
-    private const string MARKER = '# BEGIN goblin';
-
     /**
      * Stores output channel and configuration.
      *
@@ -139,7 +137,7 @@ final readonly class InstallCommand implements Command
     private function wrap(array $body): string
     {
         $lines = [
-            self::MARKER,
+            '# BEGIN goblin',
             'GOBLIN_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0',
             'if [ -f "$GOBLIN_ROOT/bin/branch-check" ]; then GOBLIN="$GOBLIN_ROOT"; elif [ -f "$GOBLIN_ROOT/../goblin/bin/branch-check" ]; then GOBLIN="$GOBLIN_ROOT/../goblin"; else echo "Goblin binaries not found in $GOBLIN_ROOT/bin or $GOBLIN_ROOT/../goblin/bin" >&2; exit 1; fi',
             ...$body,

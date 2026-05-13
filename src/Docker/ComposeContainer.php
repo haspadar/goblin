@@ -16,10 +16,10 @@ final readonly class ComposeContainer
     /**
      * Stores project root and compose service key to read.
      *
-     * @param string $projectroot Project root path.
+     * @param string $projectRoot Project root path.
      * @param string $service Compose service name.
      */
-    public function __construct(private string $projectroot, private string $service) {}
+    public function __construct(private string $projectRoot, private string $service) {}
 
     /**
      * Returns container_name of the configured service.
@@ -46,14 +46,14 @@ final readonly class ComposeContainer
     private function composePath(): string
     {
         foreach (self::FILES as $file) {
-            $path = sprintf('%s/%s', $this->projectroot, $file);
+            $path = sprintf('%s/%s', $this->projectRoot, $file);
 
             if (is_file($path)) {
                 return $path;
             }
         }
 
-        throw new GoblinException("No compose file in {$this->projectroot}");
+        throw new GoblinException("No compose file in {$this->projectRoot}");
     }
 
     /**

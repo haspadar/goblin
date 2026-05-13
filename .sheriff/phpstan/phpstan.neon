@@ -22,6 +22,8 @@ parameters:
             ignoreInterfaces: true
             excludedClasses:
                 - Goblin\GoblinException
+        parameterName:
+            pattern: "^(id|[a-z][a-zA-Z]{2,})$"
         noActorSuffix:
             allowedWords:
                 - Container

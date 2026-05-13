@@ -17,20 +17,20 @@ final readonly class RemoteIssue implements Issue
      * Stores HTTP client, issue key, and field discovery.
      *
      * @param Http $http HTTP client.
-     * @param IssueKey $key Identifier key.
-     * @param DescriptionFields $fields Issue fields payload.
+     * @param IssueKey $issueKey Jira issue key.
+     * @param DescriptionFields $fields Description field discovery.
      */
     public function __construct(
         private Http $http,
-        private IssueKey $key,
+        private IssueKey $issueKey,
         private DescriptionFields $fields,
     ) {}
 
     #[Override]
     public function details(): array
     {
-        $identifier = $this->key->value();
-        $payload = $this->http->json('GET', "/rest/api/3/issue/{$identifier}");
+        $key = $this->issueKey->value();
+        $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
 
         /** @psalm-var mixed $raw */
         $raw = $payload['fields'] ?? [];
@@ -39,7 +39,7 @@ final readonly class RemoteIssue implements Issue
         $payloadFields = is_array($raw)
             ? $raw
             : [];
-        $payloadFields['comment'] = ['comments' => $this->comments($identifier)];
+        $payloadFields['comment'] = ['comments' => $this->comments($key)];
         $payload['fields'] = $payloadFields;
 
         return (new JiraIssue($payload, $this->fields->names()))->details();
@@ -48,8 +48,8 @@ final readonly class RemoteIssue implements Issue
     #[Override]
     public function description(): string
     {
-        $identifier = $this->key->value();
-        $payload = $this->http->json('GET', "/rest/api/3/issue/{$identifier}");
+        $key = $this->issueKey->value();
+        $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
 
         return (new JiraIssue($payload, $this->fields->names()))->description();
     }
@@ -59,7 +59,7 @@ final readonly class RemoteIssue implements Issue
     {
         return $this->http->json(
             'GET',
-            "/rest/api/3/issue/{$this->key->value()}",
+            "/rest/api/3/issue/{$this->issueKey->value()}",
         );
     }
 
@@ -69,8 +69,8 @@ final readonly class RemoteIssue implements Issue
      * @throws GoblinException
      * @return list<array<string, mixed>>
      */
-    private function comments(string $identifier): array
+    private function comments(string $key): array
     {
-        return (new PaginatedComments($this->http, $identifier))->all();
+        return (new PaginatedComments($this->http, $key))->all();
     }
 }

@@ -14,23 +14,23 @@ final readonly class DayLabel
     /**
      * Stores the number of days ago.
      *
-     * @param int $daysago Days offset from today.
+     * @param int $daysAgo Days offset from today.
      */
-    public function __construct(private int $daysago) {}
+    public function __construct(private int $daysAgo) {}
 
     /**
      * Returns human-readable day label in Russian.
      */
     public function text(): string
     {
-        if ($this->daysago === 1) {
+        if ($this->daysAgo === 1) {
             return 'Вчера';
         }
 
-        $timestamp = strtotime("-{$this->daysago} days");
+        $timestamp = strtotime("-{$this->daysAgo} days");
 
         if (!is_int($timestamp)) {
-            return "day-{$this->daysago}";
+            return "day-{$this->daysAgo}";
         }
 
         $weekday = date('N', $timestamp);

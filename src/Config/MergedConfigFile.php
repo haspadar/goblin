@@ -14,10 +14,10 @@ final readonly class MergedConfigFile
     /**
      * Stores the required base file and an optional overlay path.
      *
-     * @param string $base Base configuration path.
-     * @param string $overlay Overlay configuration path.
+     * @param string $basePath Base configuration path.
+     * @param string $overlayPath Overlay configuration path.
      */
-    public function __construct(private string $base, private string $overlay = '') {}
+    public function __construct(private string $basePath, private string $overlayPath = '') {}
 
     /**
      * Returns base data merged with overlay when the overlay exists and differs from base.
@@ -27,16 +27,16 @@ final readonly class MergedConfigFile
      */
     public function data(): array
     {
-        $loaded = (new ConfigFile($this->base))->data();
+        $loaded = (new ConfigFile($this->basePath))->data();
 
-        if ($this->overlay === '' || !is_file($this->overlay)) {
+        if ($this->overlayPath === '' || !is_file($this->overlayPath)) {
             return $loaded;
         }
 
-        if (realpath($this->overlay) === realpath($this->base)) {
+        if (realpath($this->overlayPath) === realpath($this->basePath)) {
             return $loaded;
         }
 
-        return array_replace($loaded, (new ConfigFile($this->overlay))->data());
+        return array_replace($loaded, (new ConfigFile($this->overlayPath))->data());
     }
 }

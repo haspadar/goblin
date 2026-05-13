@@ -15,9 +15,9 @@ final readonly class JiraIssue implements Issue
      * Stores Jira payload and ADF field candidates.
      *
      * @param array<string, mixed> $payload Raw issue payload.
-     * @param list<string> $descriptions Description fields loader.
+     * @param list<string> $descriptionFields ADF field name candidates.
      */
-    public function __construct(private array $payload, private array $descriptions) {}
+    public function __construct(private array $payload, private array $descriptionFields) {}
 
     #[Override]
     public function details(): array
@@ -47,7 +47,7 @@ final readonly class JiraIssue implements Issue
     {
         $fields = $this->fields();
 
-        foreach ($this->descriptions as $name) {
+        foreach ($this->descriptionFields as $name) {
             /** @psalm-var mixed $candidate */
             $candidate = $fields[$name] ?? [];
 

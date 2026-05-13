@@ -12,47 +12,47 @@ final readonly class AdfText
     /**
      * Stores the ADF node to render.
      *
-     * @param array<string, mixed> $node ADF node.
+     * @param array<string, mixed> $root Root ADF node.
      */
-    public function __construct(private array $node) {}
+    public function __construct(private array $root) {}
 
     /**
      * Returns plain-text representation of the ADF node.
      */
     public function text(): string
     {
-        return $this->render($this->node);
+        return $this->render($this->root);
     }
 
     /**
      * Recursively renders a single ADF node.
      *
-     * @param array<string, mixed> $adf ADF node.
+     * @param array<string, mixed> $node ADF node.
      */
-    private function render(array $adf): string
+    private function render(array $node): string
     {
-        $type = $this->string($adf, 'type');
+        $type = $this->string($node, 'type');
 
         return match ($type) {
-            'text' => $this->string($adf, 'text'),
+            'text' => $this->string($node, 'text'),
             'hardBreak' => "\n",
-            'mention' => $this->string($this->attrs($adf), 'text'),
-            'inlineCard', 'embedCard' => $this->string($this->attrs($adf), 'url'),
-            'paragraph', 'heading' => sprintf("%s\n\n", $this->children($adf)),
-            'listItem' => sprintf("- %s\n", trim($this->children($adf))),
-            default => $this->children($adf),
+            'mention' => $this->string($this->attrs($node), 'text'),
+            'inlineCard', 'embedCard' => $this->string($this->attrs($node), 'url'),
+            'paragraph', 'heading' => sprintf("%s\n\n", $this->children($node)),
+            'listItem' => sprintf("- %s\n", trim($this->children($node))),
+            default => $this->children($node),
         };
     }
 
     /**
      * Joins rendered children of a container node.
      *
-     * @param array<string, mixed> $adf ADF node.
+     * @param array<string, mixed> $node ADF node.
      */
-    private function children(array $adf): string
+    private function children(array $node): string
     {
         /** @psalm-var mixed $content */
-        $content = $adf['content'] ?? [];
+        $content = $node['content'] ?? [];
         $parts = [];
 
         if (is_array($content)) {
@@ -86,12 +86,12 @@ final readonly class AdfText
     /**
      * Extracts attrs sub-array from a node.
      *
-     * @param array<string, mixed> $adf ADF node.
+     * @param array<string, mixed> $node ADF node.
      * @return array<string, mixed>
      */
-    private function attrs(array $adf): array
+    private function attrs(array $node): array
     {
-        $attrs = $adf['attrs'] ?? [];
+        $attrs = $node['attrs'] ?? [];
 
         if (!is_array($attrs)) {
             return [];

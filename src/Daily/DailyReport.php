@@ -17,12 +17,12 @@ final readonly class DailyReport
      * Stores search client, project filter, and Jira base URL.
      *
      * @param JiraSearch $search Jira search adapter.
-     * @param string $jiraurl Jira base URL.
+     * @param string $jiraUrl Jira base URL.
      * @param string $project Project identifier.
      */
     public function __construct(
         private JiraSearch $search,
-        private string $jiraurl,
+        private string $jiraUrl,
         private string $project = '',
     ) {}
 
@@ -62,7 +62,7 @@ final readonly class DailyReport
 
         if ($unique !== []) {
             $links = array_map(
-                fn(string $key): string => sprintf('%s/browse/%s', rtrim($this->jiraurl, '/'), $key),
+                fn(string $key): string => sprintf('%s/browse/%s', rtrim($this->jiraUrl, '/'), $key),
                 $unique,
             );
             $output = sprintf("%s\n\nСсылки:\n%s", $output, implode("\n", $links));
