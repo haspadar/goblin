@@ -55,8 +55,7 @@ final readonly class ShellGit implements Git
     #[Override]
     public function isAncestor(string $branch): bool
     {
-        $escaped = escapeshellarg($branch);
-        exec("git merge-base --is-ancestor {$escaped} HEAD 2>/dev/null", $_, $code);
+        exec('git merge-base --is-ancestor ' . escapeshellarg($branch) . ' HEAD', $_lines, $code);
 
         return $code === 0;
     }
