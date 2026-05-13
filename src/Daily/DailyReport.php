@@ -11,12 +11,18 @@ use Goblin\GoblinException;
  */
 final readonly class DailyReport
 {
+    private const int LOOKBACK_DAYS = 7;
+
     /**
      * Stores search client, project filter, and Jira base URL.
+     *
+     * @param JiraSearch $search Jira search adapter.
+     * @param string $jiraurl Jira base URL.
+     * @param string $project Project identifier.
      */
     public function __construct(
         private JiraSearch $search,
-        private string $jiraUrl,
+        private string $jiraurl,
         private string $project = '',
     ) {}
 
@@ -27,24 +33,28 @@ final readonly class DailyReport
      */
     public function text(): string
     {
-        $blocks = array_filter([
+        $candidates = [
             $this->lastActivity(),
             $this->inProgress(),
             $this->queue(),
-        ]);
-
-        if ($blocks === []) {
-            throw new GoblinException(
-                'Jira did not return any data. Check project key and permissions',
-            );
-        }
+        ];
 
         $texts = [];
         $allKeys = [];
 
-        foreach ($blocks as $block) {
+        foreach ($candidates as $block) {
+            if ($block['text'] === '') {
+                continue;
+            }
+
             $texts[] = $block['text'];
             $allKeys = array_merge($allKeys, $block['keys']);
+        }
+
+        if ($texts === []) {
+            throw new GoblinException(
+                'Jira did not return any data. Check project key and permissions',
+            );
         }
 
         $output = implode("\n", $texts);
@@ -52,10 +62,10 @@ final readonly class DailyReport
 
         if ($unique !== []) {
             $links = array_map(
-                fn(string $key): string => rtrim($this->jiraUrl, '/') . '/browse/' . $key,
+                fn(string $key): string => sprintf('%s/browse/%s', rtrim($this->jiraurl, '/'), $key),
                 $unique,
             );
-            $output .= "\n\nСсылки:\n" . implode("\n", $links);
+            $output = sprintf("%s\n\nСсылки:\n%s", $output, implode("\n", $links));
         }
 
         return $output;
@@ -65,25 +75,28 @@ final readonly class DailyReport
      * Finds last active day within 7 days.
      *
      * @throws GoblinException
-     * @return array{text: string, keys: list<string>}|null
+     * @return array{text: string, keys: list<string>}
      */
-    private function lastActivity(): ?array
+    private function lastActivity(): array
     {
         $i = 1;
 
-        while ($i <= 7) {
+        while ($i <= self::LOOKBACK_DAYS) {
             $before = $i === 1
                 ? 'startOfDay()'
-                : 'startOfDay(-' . ($i - 1) . 'd)';
-            $jql = $this->projectJql()
-                . 'status CHANGED BY currentUser() '
-                . "AFTER startOfDay(-{$i}d) BEFORE {$before}";
+                : sprintf('startOfDay(-%dd)', $i - 1);
+            $jql = sprintf(
+                '%sstatus CHANGED BY currentUser() AFTER startOfDay(-%dd) BEFORE %s',
+                $this->projectJql(),
+                $i,
+                $before,
+            );
 
             $keys = $this->search->keys($jql);
 
             if ($keys !== []) {
                 return [
-                    'text' => (new DayLabel($i))->text() . ': ' . implode(', ', $keys),
+                    'text' => sprintf('%s: %s', (new DayLabel($i))->text(), implode(', ', $keys)),
                     'keys' => $keys,
                 ];
             }
@@ -91,24 +104,23 @@ final readonly class DailyReport
             $i++;
         }
 
-        return null;
+        return ['text' => '', 'keys' => []];
     }
 
     /**
      * Finds issues currently in progress.
      *
      * @throws GoblinException
-     * @return array{text: string, keys: list<string>}|null
+     * @return array{text: string, keys: list<string>}
      */
-    private function inProgress(): ?array
+    private function inProgress(): array
     {
-        $jql = $this->projectJql()
-            . 'assignee = currentUser() AND status = "In Progress"';
+        $jql = sprintf('%sassignee = currentUser() AND status = "In Progress"', $this->projectJql());
 
         $keys = $this->search->keys($jql);
 
-        return $keys === [] ? null : [
-            'text' => 'Делаю: ' . implode(', ', $keys),
+        return $keys === [] ? ['text' => '', 'keys' => []] : [
+            'text' => sprintf('Делаю: %s', implode(', ', $keys)),
             'keys' => $keys,
         ];
     }
@@ -117,20 +129,19 @@ final readonly class DailyReport
      * Finds queued sprint issues.
      *
      * @throws GoblinException
-     * @return array{text: string, keys: list<string>}|null
+     * @return array{text: string, keys: list<string>}
      */
-    private function queue(): ?array
+    private function queue(): array
     {
-        $jql = $this->projectJql()
-            . 'sprint in openSprints() '
-            . 'AND assignee = currentUser() '
-            . 'AND status != Backlog '
-            . 'AND status NOT IN ("In Progress", Done, Closed, Cancelled)';
+        $jql = sprintf(
+            '%ssprint in openSprints() AND assignee = currentUser() AND status != Backlog AND status NOT IN ("In Progress", Done, Closed, Cancelled)',
+            $this->projectJql(),
+        );
 
         $keys = $this->search->keys($jql);
 
-        return $keys === [] ? null : [
-            'text' => 'В очереди: ' . implode(', ', $keys),
+        return $keys === [] ? ['text' => '', 'keys' => []] : [
+            'text' => sprintf('В очереди: %s', implode(', ', $keys)),
             'keys' => $keys,
         ];
     }

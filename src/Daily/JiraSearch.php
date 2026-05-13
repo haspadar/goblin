@@ -14,14 +14,19 @@ use Goblin\Http\Http;
  */
 final readonly class JiraSearch
 {
+    private const int MAX_RESULTS = 50;
+
     /**
      * Stores HTTP client for Jira API requests.
+     *
+     * @param Http $http HTTP client.
      */
     public function __construct(private Http $http) {}
 
     /**
      * Returns issue keys matching a JQL query.
      *
+     * @param string $jql JQL query string.
      * @throws GoblinException
      * @return list<string>
      */
@@ -30,7 +35,7 @@ final readonly class JiraSearch
         $query = http_build_query([
             'jql' => $jql,
             'fields' => 'key',
-            'maxResults' => 50,
+            'maxResults' => self::MAX_RESULTS,
         ]);
 
         $data = $this->http->json('GET', "/rest/api/3/search/jql?{$query}");

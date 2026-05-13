@@ -13,6 +13,13 @@ use Goblin\Http\Http;
  */
 final readonly class BranchCheck
 {
+    /**
+     * Stores git facade, HTTP client, and configuration.
+     *
+     * @param Git $git Git facade.
+     * @param Http $http HTTP client.
+     * @param Config $config Configuration access.
+     */
     public function __construct(
         private Git $git,
         private Http $http,
@@ -61,7 +68,7 @@ final readonly class BranchCheck
     /**
      * Returns true when any declared base is an ancestor of HEAD.
      *
-     * @param non-empty-list<string> $bases
+     * @param non-empty-list<string> $bases Allowed base branches.
      * @throws GoblinException
      */
     private function hasAncestorBase(array $bases): bool
@@ -101,7 +108,7 @@ final readonly class BranchCheck
 
         $result = @preg_match($regex, $branch, $m);
 
-        if ($result === false) {
+        if (!is_int($result)) {
             throw new GoblinException("Invalid project regex: {$regex}");
         }
 

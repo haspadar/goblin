@@ -11,25 +11,30 @@ use Goblin\GoblinException;
  */
 final readonly class RegexRule
 {
+    private const int OFFSET_INDEX = 2;
+
     /**
      * Stores regex pattern and sort direction.
+     *
+     * @param string $pattern Regex pattern.
+     * @param string $sort Sort weight.
      */
     public function __construct(private string $pattern, private string $sort) {}
 
     /**
-     * Returns the selected release from matches, or null.
+     * Returns the selected release from matches, or an empty string when no release matches.
      *
-     * @param list<string> $releases
-     * @param array<string, string> $assigned
-     * @param array<string, string> $vars
+     * @param list<string> $releases Active releases.
+     * @param array<string, string> $assigned Already assigned versions.
+     * @param array<string, string> $vars Substitution variables.
      * @throws GoblinException
      */
-    public function match(array $releases, array $assigned, array $vars): ?string
+    public function match(array $releases, array $assigned, array $vars): string
     {
         $regex = $this->interpolate($vars);
 
         if ($regex === '') {
-            return null;
+            return '';
         }
 
         $matched = [];
@@ -43,7 +48,7 @@ final readonly class RegexRule
         }
 
         if ($matched === []) {
-            return null;
+            return '';
         }
 
         usort($matched, static fn(string $a, string $b): int => version_compare($a, $b));
@@ -54,7 +59,8 @@ final readonly class RegexRule
     /**
      * Returns named groups captured from release.
      *
-     * @param array<string, string> $vars
+     * @param string $release Release identifier.
+     * @param array<string, string> $vars Substitution variables.
      * @throws GoblinException
      * @return array<string, string>
      */
@@ -86,12 +92,12 @@ final readonly class RegexRule
     /**
      * Throws when regex pattern is invalid.
      *
-     * @param non-empty-string $regex
+     * @param non-empty-string $regex Regex value.
      * @throws GoblinException
      */
     private function validate(string $regex): void
     {
-        if (@preg_match($regex, '') === false) {
+        if (!is_int(@preg_match($regex, ''))) {
             throw new GoblinException("Invalid branch-rule regex: {$regex}");
         }
     }
@@ -99,7 +105,7 @@ final readonly class RegexRule
     /**
      * Replaces {var} and {var+N} placeholders with values.
      *
-     * @param array<string, string> $vars
+     * @param array<string, string> $vars Substitution variables.
      */
     private function interpolate(array $vars): string
     {
@@ -118,8 +124,8 @@ final readonly class RegexRule
 
                 $value = (int) $vars[$name];
 
-                if (array_key_exists(2, $m)) {
-                    $value += (int) $m[2];
+                if (array_key_exists(self::OFFSET_INDEX, $m)) {
+                    $value += (int) $m[self::OFFSET_INDEX];
                 }
 
                 return (string) $value;

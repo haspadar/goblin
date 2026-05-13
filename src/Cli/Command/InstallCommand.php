@@ -21,8 +21,13 @@ final readonly class InstallCommand implements Command
 {
     private const string DEFAULT_SERVICE = 'app';
 
+    private const string MARKER = '# BEGIN goblin';
+
     /**
      * Stores output channel and configuration.
+     *
+     * @param Output $output Output channel.
+     * @param Config $config Configuration access.
      */
     public function __construct(private Output $output, private Config $config) {}
 
@@ -34,14 +39,14 @@ final readonly class InstallCommand implements Command
         $container = $fromFlag !== ''
             ? $fromFlag
             : $this->resolveContainer($root, $args);
-        $hooksDir = $root . '/.git/hooks';
+        $hooksDir = "{$root}/.git/hooks";
 
         if (!is_dir($hooksDir)) {
             throw new GoblinException("Hooks directory not found: {$hooksDir}");
         }
 
         foreach (InstallHook::cases() as $hook) {
-            $action = (new HookFile($hooksDir . '/' . $hook->value, $this->block($hook, $container)))->install();
+            $action = (new HookFile("{$hooksDir}/{$hook->value}", $this->block($hook, $container)))->install();
             $this->report($hook, $action);
         }
 
@@ -116,7 +121,7 @@ final readonly class InstallCommand implements Command
                 '( php "$GOBLIN/bin/commit-check" "$1" ) || exit $?',
             ]),
             InstallHook::PrePush => $this->wrap([
-                'php "$GOBLIN/bin/docker-test" --container=' . escapeshellarg($container) . ' || exit $?',
+                sprintf('php "$GOBLIN/bin/docker-test" --container=%s || exit $?', escapeshellarg($container)),
             ]),
             InstallHook::PostCheckout => $this->wrap([
                 'if [ "$3" = "1" ]; then',
@@ -129,16 +134,14 @@ final readonly class InstallCommand implements Command
     /**
      * Wraps the given lines in the goblin marker block with GOBLIN resolution.
      *
-     * @param list<string> $body
+     * @param list<string> $body Body value.
      */
     private function wrap(array $body): string
     {
         $lines = [
-            HookFile::MARKER,
+            self::MARKER,
             'GOBLIN_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)" || exit 0',
-            'if [ -f "$GOBLIN_ROOT/bin/branch-check" ]; then GOBLIN="$GOBLIN_ROOT";'
-                . ' elif [ -f "$GOBLIN_ROOT/../goblin/bin/branch-check" ]; then GOBLIN="$GOBLIN_ROOT/../goblin";'
-                . ' else echo "Goblin binaries not found in $GOBLIN_ROOT/bin or $GOBLIN_ROOT/../goblin/bin" >&2; exit 1; fi',
+            'if [ -f "$GOBLIN_ROOT/bin/branch-check" ]; then GOBLIN="$GOBLIN_ROOT"; elif [ -f "$GOBLIN_ROOT/../goblin/bin/branch-check" ]; then GOBLIN="$GOBLIN_ROOT/../goblin"; else echo "Goblin binaries not found in $GOBLIN_ROOT/bin or $GOBLIN_ROOT/../goblin/bin" >&2; exit 1; fi',
             ...$body,
             '# END goblin',
             '',

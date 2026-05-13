@@ -13,22 +13,25 @@ final readonly class ProjectConfigPath
 
     /**
      * Stores the CLI override (empty when absent) and the current working directory.
+     *
+     * @param string $override Override path.
+     * @param string $cwd Current working directory.
      */
     public function __construct(private string $override, private string $cwd) {}
 
     /**
-     * Returns the override verbatim, the cwd-scoped config path when it exists, or null.
+     * Returns the override verbatim, the cwd-scoped config path when it exists, or an empty string.
      */
-    public function value(): ?string
+    public function value(): string
     {
         if ($this->override !== '') {
             return $this->override;
         }
 
-        $candidate = rtrim($this->cwd, '/') . '/' . self::FILENAME;
+        $candidate = sprintf('%s/%s', rtrim($this->cwd, '/'), self::FILENAME);
 
         return is_file($candidate)
             ? $candidate
-            : null;
+            : '';
     }
 }

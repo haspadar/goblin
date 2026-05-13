@@ -17,6 +17,10 @@ final readonly class TestCommand implements Command
 {
     /**
      * Stores Docker client, configuration, and output.
+     *
+     * @param Docker $docker Docker facade.
+     * @param Config $config Configuration access.
+     * @param Output $output Output channel.
      */
     public function __construct(
         private Docker $docker,

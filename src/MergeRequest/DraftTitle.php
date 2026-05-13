@@ -13,6 +13,8 @@ final readonly class DraftTitle
 {
     /**
      * Stores the original title.
+     *
+     * @param string $title Raw title text.
      */
     public function __construct(private string $title) {}
 
@@ -25,7 +27,7 @@ final readonly class DraftTitle
             return $this->title;
         }
 
-        return 'Draft: ' . $this->title;
+        return sprintf('Draft: %s', $this->title);
     }
 
     /**

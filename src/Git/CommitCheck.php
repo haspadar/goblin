@@ -14,12 +14,15 @@ final readonly class CommitCheck
     /**
      * Stores branch name, commit message, and project regex.
      *
-     * @param non-empty-string $projectRegex
+     *
+     * @param string $branch Branch name.
+     * @param string $message Commit message.
+     * @param non-empty-string $regex Project regex pattern.
      */
     public function __construct(
         private string $branch,
         private string $message,
-        private string $projectRegex,
+        private string $regex,
     ) {}
 
     /**
@@ -74,11 +77,11 @@ final readonly class CommitCheck
      */
     private function keyFrom(string $text): string
     {
-        $result = @preg_match($this->projectRegex, $text, $m);
+        $result = @preg_match($this->regex, $text, $m);
 
-        if ($result === false) {
+        if (!is_int($result)) {
             throw new GoblinException(
-                "Invalid project regex: {$this->projectRegex}",
+                "Invalid project regex: {$this->regex}",
             );
         }
 

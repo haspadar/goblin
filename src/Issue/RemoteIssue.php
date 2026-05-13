@@ -15,6 +15,10 @@ final readonly class RemoteIssue implements Issue
 {
     /**
      * Stores HTTP client, issue key, and field discovery.
+     *
+     * @param Http $http HTTP client.
+     * @param IssueKey $key Identifier key.
+     * @param DescriptionFields $fields Issue fields payload.
      */
     public function __construct(
         private Http $http,
@@ -25,18 +29,18 @@ final readonly class RemoteIssue implements Issue
     #[Override]
     public function details(): array
     {
-        $key = $this->key->value();
-        $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
+        $identifier = $this->key->value();
+        $payload = $this->http->json('GET', "/rest/api/3/issue/{$identifier}");
 
         /** @psalm-var mixed $raw */
         $raw = $payload['fields'] ?? [];
 
-        /** @psalm-var array<string, mixed> $fields */
-        $fields = is_array($raw)
+        /** @psalm-var array<string, mixed> $payloadFields */
+        $payloadFields = is_array($raw)
             ? $raw
             : [];
-        $fields['comment'] = ['comments' => $this->comments($key)];
-        $payload['fields'] = $fields;
+        $payloadFields['comment'] = ['comments' => $this->comments($identifier)];
+        $payload['fields'] = $payloadFields;
 
         return (new JiraIssue($payload, $this->fields->names()))->details();
     }
@@ -44,8 +48,8 @@ final readonly class RemoteIssue implements Issue
     #[Override]
     public function description(): string
     {
-        $key = $this->key->value();
-        $payload = $this->http->json('GET', "/rest/api/3/issue/{$key}");
+        $identifier = $this->key->value();
+        $payload = $this->http->json('GET', "/rest/api/3/issue/{$identifier}");
 
         return (new JiraIssue($payload, $this->fields->names()))->description();
     }
@@ -65,8 +69,8 @@ final readonly class RemoteIssue implements Issue
      * @throws GoblinException
      * @return list<array<string, mixed>>
      */
-    private function comments(string $key): array
+    private function comments(string $identifier): array
     {
-        return (new PaginatedComments($this->http, $key))->all();
+        return (new PaginatedComments($this->http, $identifier))->all();
     }
 }

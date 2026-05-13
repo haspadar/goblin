@@ -20,4 +20,9 @@ parameters:
     haspadar:
         afferentCoupling:
             ignoreInterfaces: true
-            excludedClasses: []
+            excludedClasses:
+                - Goblin\GoblinException
+        noActorSuffix:
+            allowedWords:
+                - Container
+                - Docker

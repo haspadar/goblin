@@ -33,13 +33,13 @@ final class ProjectConfigPathTest extends TestCase
     }
 
     #[Test]
-    public function returnsNullWhenCwdHasNoConfig(): void
+    public function returnsEmptyStringWhenCwdHasNoConfig(): void
     {
         $dir = self::tempDir('cwd-absent');
 
         $value = (new ProjectConfigPath('', $dir))->value();
 
-        self::assertNull($value, 'no override and no cwd file must yield null overlay');
+        self::assertSame('', $value, 'no override and no cwd file must yield empty overlay');
     }
 
     #[Test]

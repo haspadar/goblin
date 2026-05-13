@@ -15,17 +15,29 @@ use Override;
  */
 final readonly class TokenHttp implements Http
 {
+    private const int HTTP_OK = 200;
+
+    private const int HTTP_MULTIPLE_CHOICES = 300;
+
+    private const int CONNECT_TIMEOUT_SECONDS = 10;
+
+    private const int TIMEOUT_SECONDS = 30;
+
     /**
      * Configures base URL, auth header name and token value.
+     *
+     * @param string $url Endpoint URL.
+     * @param string $header HTTP header name.
+     * @param string $token Authentication token.
      */
     public function __construct(private string $url, private string $header, private string $token) {}
 
     #[Override]
     public function json(string $method, string $path, array $body = []): array
     {
-        $curl = curl_init($this->url . $path);
+        $curl = curl_init(sprintf('%s%s', $this->url, $path));
 
-        if ($curl === false) {
+        if (!$curl instanceof CurlHandle) {
             throw new GoblinException("Failed to init curl for {$path}");
         }
 
@@ -39,7 +51,7 @@ final readonly class TokenHttp implements Http
             throw new GoblinException("Request failed: {$method} {$path} ({$error})");
         }
 
-        if ($code < 200 || $code >= 300) {
+        if ($code < self::HTTP_OK || $code >= self::HTTP_MULTIPLE_CHOICES) {
             throw new GoblinException("HTTP {$code}: {$method} {$path}");
         }
 
@@ -49,8 +61,8 @@ final readonly class TokenHttp implements Http
     /**
      * Sets curl options for method, headers and body.
      *
-     * @param non-empty-string $method
-     * @param array<string, mixed> $body
+     * @param non-empty-string $method Method value.
+     * @param array<string, mixed> $body Body value.
      * @throws GoblinException
      */
     private function configure(CurlHandle $curl, string $method, array $body): void
@@ -65,14 +77,14 @@ final readonly class TokenHttp implements Http
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_HTTPHEADER => $headers,
             CURLOPT_CUSTOMREQUEST => $method,
-            CURLOPT_CONNECTTIMEOUT => 10,
-            CURLOPT_TIMEOUT => 30,
+            CURLOPT_CONNECTTIMEOUT => self::CONNECT_TIMEOUT_SECONDS,
+            CURLOPT_TIMEOUT => self::TIMEOUT_SECONDS,
         ]);
 
         if ($body !== []) {
             $encoded = json_encode($body);
 
-            if ($encoded === false) {
+            if (!is_string($encoded)) {
                 throw new GoblinException("Failed to encode body: {$method}");
             }
 

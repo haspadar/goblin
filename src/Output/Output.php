@@ -13,21 +13,29 @@ interface Output
 {
     /**
      * Emits an informational message.
+     *
+     * @param string $text Text value.
      */
     public function info(string $text): void;
 
     /**
      * Emits a success message.
+     *
+     * @param string $text Text value.
      */
     public function success(string $text): void;
 
     /**
      * Emits an error message.
+     *
+     * @param string $text Text value.
      */
     public function error(string $text): void;
 
     /**
      * Emits a muted (secondary) message.
+     *
+     * @param string $text Text value.
      */
     public function muted(string $text): void;
 }

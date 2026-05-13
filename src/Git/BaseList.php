@@ -12,7 +12,9 @@ final readonly class BaseList
     /**
      * Stores rule config and target branch used as fallback.
      *
-     * @param array<array-key, mixed> $rule
+     *
+     * @param array<array-key, mixed> $rule Branch rule config.
+     * @param string $target Target branch name.
      */
     public function __construct(private array $rule, private string $target) {}
 

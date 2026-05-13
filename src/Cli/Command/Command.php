@@ -17,6 +17,7 @@ interface Command
     /**
      * Runs the command and returns exit code.
      *
+     * @param Arguments $args Args value.
      * @throws GoblinException
      */
     public function run(Arguments $args): int;

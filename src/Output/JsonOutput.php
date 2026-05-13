@@ -14,8 +14,8 @@ final readonly class JsonOutput implements Output
     /**
      * Accepts stdout and stderr streams.
      *
-     * @param resource $stdout
-     * @param resource $stderr
+     * @param resource $stdout Standard output stream.
+     * @param resource $stderr Standard error stream.
      */
     public function __construct(private mixed $stdout = STDOUT, private mixed $stderr = STDERR) {}
 
@@ -46,7 +46,7 @@ final readonly class JsonOutput implements Output
     /**
      * Writes a JSON line to the given stream.
      *
-     * @param resource $stream
+     * @param resource $stream Stream value.
      */
     private function write(mixed $stream, string $level, string $text): void
     {

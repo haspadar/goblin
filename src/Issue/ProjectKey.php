@@ -17,6 +17,10 @@ final readonly class ProjectKey
 {
     /**
      * Stores argument, git state, and configuration.
+     *
+     * @param string $argument CLI argument override.
+     * @param Git $git Git facade.
+     * @param Config $config Configuration access.
      */
     public function __construct(private string $argument, private Git $git, private Config $config) {}
 
@@ -48,7 +52,7 @@ final readonly class ProjectKey
         $branch = $this->git->currentBranch();
         $result = @preg_match($regex, $branch, $matches);
 
-        if ($result === false) {
+        if (!is_int($result)) {
             throw new GoblinException("Invalid project regex: {$regex}");
         }
 

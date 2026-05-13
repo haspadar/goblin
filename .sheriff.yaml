@@ -2,3 +2,13 @@
 override:
     ci.pr.max_lines_changed: 700
     phpmetrics.coupling.max_afferent: 30
+append:
+    phpstan.parameters:
+        haspadar:
+            noActorSuffix:
+                allowedWords:
+                    - Container
+                    - Docker
+            afferentCoupling:
+                excludedClasses:
+                    - 'Goblin\GoblinException'

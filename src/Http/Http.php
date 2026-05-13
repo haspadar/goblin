@@ -16,8 +16,9 @@ interface Http
     /**
      * Sends a JSON request and returns the decoded response.
      *
-     * @param non-empty-string $method
-     * @param array<string, mixed> $body
+     * @param non-empty-string $method Method value.
+     * @param array<string, mixed> $body Body value.
+     * @param string $path Path value.
      * @throws GoblinException
      * @return array<string, mixed>
      */

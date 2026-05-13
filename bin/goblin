@@ -44,7 +44,7 @@ $configPath = dirname(__DIR__) . '/.goblin.php';
 try {
     $cwd = getcwd();
     $overlay = $cwd === false
-        ? null
+        ? ''
         : (new ProjectConfigPath($args->option('config'), $cwd))->value();
 
     if ($command === 'install') {

@@ -15,7 +15,7 @@ final readonly class FileConfig implements Config
     /**
      * Wraps already-parsed configuration data.
      *
-     * @param array<string, string|list<string>|array<string, mixed>> $data
+     * @param array<string, string|list<string>|array<string, mixed>> $data Raw data array.
      */
     public function __construct(private array $data) {}
 

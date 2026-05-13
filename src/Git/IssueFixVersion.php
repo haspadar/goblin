@@ -15,8 +15,11 @@ final readonly class IssueFixVersion
 {
     /**
      * Stores HTTP client and issue key.
+     *
+     * @param Http $http HTTP client.
+     * @param string $key Jira issue key.
      */
-    public function __construct(private Http $http, private string $issueKey) {}
+    public function __construct(private Http $http, private string $key) {}
 
     /**
      * Returns the first Fix Version name from the issue.
@@ -25,7 +28,7 @@ final readonly class IssueFixVersion
      */
     public function name(): string
     {
-        $payload = $this->http->json('GET', "/rest/api/3/issue/{$this->issueKey}");
+        $payload = $this->http->json('GET', "/rest/api/3/issue/{$this->key}");
 
         /** @psalm-var mixed $fields */
         $fields = $payload['fields'] ?? [];
@@ -34,7 +37,7 @@ final readonly class IssueFixVersion
         $versions = is_array($fields) ? ($fields['fixVersions'] ?? []) : [];
 
         if (!is_array($versions) || $versions === []) {
-            throw new GoblinException("Issue {$this->issueKey} has no Fix Version");
+            throw new GoblinException("Issue {$this->key} has no Fix Version");
         }
 
         /** @psalm-var mixed $first */
@@ -44,7 +47,7 @@ final readonly class IssueFixVersion
         $name = is_array($first) ? ($first['name'] ?? '') : '';
 
         if (!is_string($name) || $name === '') {
-            throw new GoblinException("Issue {$this->issueKey} has no Fix Version");
+            throw new GoblinException("Issue {$this->key} has no Fix Version");
         }
 
         return $name;
@@ -66,10 +69,10 @@ final readonly class IssueFixVersion
      */
     private function projectKey(): string
     {
-        $pos = strpos($this->issueKey, '-');
+        $pos = strpos($this->key, '-');
 
-        return $pos !== false
-            ? substr($this->issueKey, 0, $pos)
-            : $this->issueKey;
+        return is_int($pos)
+            ? substr($this->key, 0, $pos)
+            : $this->key;
     }
 }

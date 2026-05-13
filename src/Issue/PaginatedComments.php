@@ -12,8 +12,13 @@ use Goblin\Http\Http;
  */
 final readonly class PaginatedComments
 {
+    private const int PAGE_SIZE = 100;
+
     /**
      * Stores HTTP client and issue key for comment loading.
+     *
+     * @param Http $http HTTP client.
+     * @param string $key Identifier key.
      */
     public function __construct(private Http $http, private string $key) {}
 
@@ -27,7 +32,7 @@ final readonly class PaginatedComments
     {
         $result = [];
         $startAt = 0;
-        $maxResults = 100;
+        $maxResults = self::PAGE_SIZE;
 
         do {
             $page = $this->http->json(
@@ -46,7 +51,7 @@ final readonly class PaginatedComments
     /**
      * Extracts valid comment arrays from a page response.
      *
-     * @param array<string, mixed> $page
+     * @param array<string, mixed> $page Page value.
      * @return list<array<string, mixed>>
      */
     private function extractComments(array $page): array
@@ -73,7 +78,7 @@ final readonly class PaginatedComments
     /**
      * Returns page size from response or default.
      *
-     * @param array<string, mixed> $page
+     * @param array<string, mixed> $page Page value.
      */
     private function pageSize(array $page, int $default): int
     {
@@ -87,12 +92,12 @@ final readonly class PaginatedComments
     /**
      * Extracts an integer value from response array.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $data Raw data array.
      */
-    private function int(array $data, string $key): int
+    private function int(array $data, string $field): int
     {
         /** @psalm-var mixed $value */
-        $value = $data[$key] ?? 0;
+        $value = $data[$field] ?? 0;
 
         return is_int($value)
             ? $value

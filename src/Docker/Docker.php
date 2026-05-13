@@ -13,6 +13,8 @@ interface Docker
 {
     /**
      * Checks whether a container is currently running.
+     *
+     * @param string $container Container value.
      */
     public function isRunning(string $container): bool;
 
@@ -20,6 +22,7 @@ interface Docker
      * Runs a trusted command inside a container and returns exit code.
      *
      * @param string $command Shell command from a trusted source (not user input)
+     * @param string $container Container value.
      */
     public function exec(string $container, string $command): int;
 }

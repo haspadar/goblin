@@ -13,6 +13,8 @@ final readonly class CommitMessage
 {
     /**
      * Stores the raw input (file path or text).
+     *
+     * @param string $input Input value.
      */
     public function __construct(private string $input) {}
 
@@ -32,7 +34,7 @@ final readonly class CommitMessage
         if (is_file($this->input)) {
             $content = file_get_contents($this->input);
 
-            if ($content === false) {
+            if (!is_string($content)) {
                 throw new GoblinException(
                     "Cannot read commit message file: {$this->input}",
                 );

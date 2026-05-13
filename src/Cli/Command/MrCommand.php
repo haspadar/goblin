@@ -21,28 +21,31 @@ final readonly class MrCommand implements Command
 {
     /**
      * Stores git state and GitLab HTTP client.
+     *
+     * @param Git $git Git facade.
+     * @param Http $http HTTP client.
      */
     public function __construct(private Git $git, private Http $http) {}
 
     #[Override]
     public function run(Arguments $args): int
     {
-        $mr = new GitLabMergeRequest(
+        $request = new GitLabMergeRequest(
             $this->http,
             (new ProjectPath($this->git->remote()))->value(),
         );
         $sub = $args->positional(0);
 
         $data = match ($sub) {
-            'create' => $this->created($mr, $args),
-            'view' => $mr->view($this->iid($args)),
-            'list' => $mr->list([
+            'create' => $this->created($request, $args),
+            'view' => $request->view($this->iid($args)),
+            'list' => $request->list([
                 'state' => $args->option('state'),
                 'source_branch' => $args->option('source'),
                 'target_branch' => $args->option('target'),
                 'search' => $args->option('search'),
             ]),
-            'update' => $this->updated($mr, $args),
+            'update' => $this->updated($request, $args),
             default => throw new GoblinException("Unknown mr subcommand: {$sub}"),
         };
 
@@ -64,7 +67,7 @@ final readonly class MrCommand implements Command
      * @throws GoblinException
      * @return array<string, mixed>
      */
-    private function created(GitLabMergeRequest $mr, Arguments $args): array
+    private function created(GitLabMergeRequest $request, Arguments $args): array
     {
         $source = $args->option('source');
         $target = $args->option('target');
@@ -74,7 +77,7 @@ final readonly class MrCommand implements Command
             throw new GoblinException('Options --source, --target and --title are required');
         }
 
-        return $mr->create([
+        return $request->create([
             'source_branch' => $source,
             'target_branch' => $target,
             'title' => $args->flag('draft')
@@ -90,7 +93,7 @@ final readonly class MrCommand implements Command
      * @throws GoblinException
      * @return array<string, mixed>
      */
-    private function updated(GitLabMergeRequest $mr, Arguments $args): array
+    private function updated(GitLabMergeRequest $request, Arguments $args): array
     {
         $iid = $this->iid($args);
         $changes = array_filter(
@@ -108,7 +111,7 @@ final readonly class MrCommand implements Command
 
         if ($args->flag('draft') || $args->flag('ready')) {
             $explicit = $args->option('title');
-            $viewed = $mr->view($iid);
+            $viewed = $request->view($iid);
             $current = array_key_exists('title', $viewed) && is_string($viewed['title'])
                 ? $viewed['title']
                 : '';
@@ -120,7 +123,7 @@ final readonly class MrCommand implements Command
                 : (new DraftTitle($title))->ready();
         }
 
-        return $mr->update($iid, $changes);
+        return $request->update($iid, $changes);
     }
 
     /**

@@ -14,7 +14,7 @@ final readonly class LocalShell implements Shell
     #[Override]
     public function run(string $command): int
     {
-        passthru($command . ' 2>&1', $code);
+        passthru(sprintf('%s 2>&1', $command), $code);
 
         return $code;
     }

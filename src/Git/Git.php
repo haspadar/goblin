@@ -37,6 +37,7 @@ interface Git
     /**
      * Returns true when the given branch is an ancestor of HEAD.
      *
+     * @param string $branch Branch name to test.
      * @throws GoblinException
      */
     public function isAncestor(string $branch): bool;

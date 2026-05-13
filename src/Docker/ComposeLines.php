@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace Goblin\Docker;
 
+use Goblin\GoblinException;
+
 /**
  * Operations over a list of YAML lines from a docker-compose file.
  */
@@ -12,7 +14,7 @@ final readonly class ComposeLines
     /**
      * Stores the list of significant (non-blank, non-comment) lines.
      *
-     * @param list<string> $lines
+     * @param list<string> $lines Compose file lines.
      */
     public function __construct(private array $lines) {}
 
@@ -27,11 +29,11 @@ final readonly class ComposeLines
     }
 
     /**
-     * Returns a new ComposeLines containing all lines after the first match of $pattern, or null if no match.
+     * Returns a new ComposeLines containing all lines after the first match of $pattern, or empty when no match.
      *
-     * @param non-empty-string $pattern
+     * @param non-empty-string $pattern Regex pattern.
      */
-    public function sliceAfter(string $pattern): ?self
+    public function sliceAfter(string $pattern): self
     {
         foreach ($this->lines as $i => $line) {
             if (preg_match($pattern, $line) === 1) {
@@ -39,18 +41,20 @@ final readonly class ComposeLines
             }
         }
 
-        return null;
+        return new self([]);
     }
 
     /**
-     * Returns a new ComposeLines containing the prefix whose indent is strictly greater than $parentIndent.
+     * Returns a new ComposeLines containing the prefix whose indent is strictly greater than $parent.
+     *
+     * @param int $parent Parent indent string.
      */
-    public function takeNested(int $parentIndent): self
+    public function takeNested(int $parent): self
     {
         $out = [];
 
         foreach ($this->lines as $line) {
-            if ($this->indentOf($line) <= $parentIndent) {
+            if ($this->indentOf($line) <= $parent) {
                 break;
             }
 
@@ -82,11 +86,12 @@ final readonly class ComposeLines
     }
 
     /**
-     * Returns the leading-whitespace capture (group 1) of the first matching line, or null.
+     * Returns the leading-whitespace capture (group 1) of the first matching line.
      *
-     * @param non-empty-string $pattern
+     * @param non-empty-string $pattern Regex pattern.
+     * @throws GoblinException
      */
-    public function firstCapturedIndent(string $pattern): ?int
+    public function firstCapturedIndent(string $pattern): int
     {
         $match = [];
 
@@ -96,7 +101,7 @@ final readonly class ComposeLines
             }
         }
 
-        return null;
+        throw new GoblinException(sprintf('No line matched %s', $pattern));
     }
 
     private function indentOf(string $line): int

@@ -13,6 +13,9 @@ final readonly class PrefixedOutput implements Output
 {
     /**
      * Wraps an existing output with a text prefix.
+     *
+     * @param string $prefix Output prefix.
+     * @param Output $origin Wrapped output channel.
      */
     public function __construct(private string $prefix, private Output $origin) {}
 

@@ -14,13 +14,15 @@ final readonly class Arguments
     /**
      * Stores parsed components.
      *
-     * @param array<string, string|true> $options
-     * @param list<string> $positionals
+     * @param array<string, string|true> $options Parsed options.
+     * @param list<string> $positionals Parsed positional arguments.
      */
     public function __construct(private array $options, private array $positionals) {}
 
     /**
      * Returns an option value by key, or empty string if absent.
+     *
+     * @param string $key Option key.
      */
     public function option(string $key): string
     {
@@ -33,6 +35,8 @@ final readonly class Arguments
 
     /**
      * Returns a positional argument by index, or empty string.
+     *
+     * @param int $index Positional index.
      */
     public function positional(int $index): string
     {
@@ -41,6 +45,8 @@ final readonly class Arguments
 
     /**
      * Checks whether a flag option is present.
+     *
+     * @param string $key Option key.
      */
     public function flag(string $key): bool
     {

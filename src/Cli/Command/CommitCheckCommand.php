@@ -20,6 +20,10 @@ final readonly class CommitCheckCommand implements Command
 {
     /**
      * Stores git, configuration, and output channel.
+     *
+     * @param Git $git Git facade.
+     * @param Config $config Configuration access.
+     * @param Output $output Output channel.
      */
     public function __construct(private Git $git, private Config $config, private Output $output) {}
 

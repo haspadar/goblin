@@ -12,7 +12,7 @@ final readonly class AdfText
     /**
      * Stores the ADF node to render.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $node ADF node.
      */
     public function __construct(private array $node) {}
 
@@ -27,32 +27,32 @@ final readonly class AdfText
     /**
      * Recursively renders a single ADF node.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $adf ADF node.
      */
-    private function render(array $node): string
+    private function render(array $adf): string
     {
-        $type = $this->string($node, 'type');
+        $type = $this->string($adf, 'type');
 
         return match ($type) {
-            'text' => $this->string($node, 'text'),
+            'text' => $this->string($adf, 'text'),
             'hardBreak' => "\n",
-            'mention' => $this->string($this->attrs($node), 'text'),
-            'inlineCard', 'embedCard' => $this->string($this->attrs($node), 'url'),
-            'paragraph', 'heading' => $this->children($node) . "\n\n",
-            'listItem' => '- ' . trim($this->children($node)) . "\n",
-            default => $this->children($node),
+            'mention' => $this->string($this->attrs($adf), 'text'),
+            'inlineCard', 'embedCard' => $this->string($this->attrs($adf), 'url'),
+            'paragraph', 'heading' => sprintf("%s\n\n", $this->children($adf)),
+            'listItem' => sprintf("- %s\n", trim($this->children($adf))),
+            default => $this->children($adf),
         };
     }
 
     /**
      * Joins rendered children of a container node.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $adf ADF node.
      */
-    private function children(array $node): string
+    private function children(array $adf): string
     {
         /** @psalm-var mixed $content */
-        $content = $node['content'] ?? [];
+        $content = $adf['content'] ?? [];
         $parts = [];
 
         if (is_array($content)) {
@@ -71,7 +71,7 @@ final readonly class AdfText
     /**
      * Extracts a string value from an array by key.
      *
-     * @param array<string, mixed> $data
+     * @param array<string, mixed> $data Raw data array.
      */
     private function string(array $data, string $key): string
     {
@@ -86,12 +86,12 @@ final readonly class AdfText
     /**
      * Extracts attrs sub-array from a node.
      *
-     * @param array<string, mixed> $node
+     * @param array<string, mixed> $adf ADF node.
      * @return array<string, mixed>
      */
-    private function attrs(array $node): array
+    private function attrs(array $adf): array
     {
-        $attrs = $node['attrs'] ?? [];
+        $attrs = $adf['attrs'] ?? [];
 
         if (!is_array($attrs)) {
             return [];
